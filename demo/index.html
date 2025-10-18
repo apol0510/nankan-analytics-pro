@@ -728,9 +728,9 @@
 
                     <div class="form-group">
                         <label for="prediction-input">
-                            予想テキストを貼り付けてください
+                            予想テキストを貼り付けてください（自動でプレビューに変換されます）
                         </label>
-                        <textarea id="prediction-input" placeholder="大井5R 1800m（12頭）発走時刻16:45 3歳以上オープン
+                        <textarea id="prediction-input" oninput="autoConvert()" placeholder="大井5R 1800m（12頭）発走時刻16:45 3歳以上オープン
 ◎8 サンライズグローリー 本命
 ○3 ミッドナイトキング 対抗
 ▲11 ダイヤモンドスター 単穴
@@ -753,10 +753,6 @@
                     </div>
 
                     <div class="btn-group">
-                        <button class="btn btn-primary" onclick="convertPrediction()">
-                            <span>🔄</span>
-                            変換してプレビュー
-                        </button>
                         <button class="btn btn-secondary" onclick="clearInput()">
                             <span>🗑️</span>
                             クリア
@@ -814,6 +810,18 @@
     <script>
         let currentPreviewData = null;
         let currentMode = 'admin';
+        let autoConvertTimer = null;
+
+        // 自動変換（入力後1秒待ってから変換）
+        function autoConvert() {
+            clearTimeout(autoConvertTimer);
+            autoConvertTimer = setTimeout(() => {
+                const input = document.getElementById('prediction-input').value.trim();
+                if (input) {
+                    convertPrediction();
+                }
+            }, 1000);
+        }
 
         // モード切り替え
         function switchMode(mode) {
@@ -900,14 +908,12 @@
 的中確率71%`;
 
             document.getElementById('prediction-input').value = sampleData;
-            showStatus('📥 読み込み中...', 'success');
 
             // 自動的に変換してプレビュー表示
+            showStatus('🔄 変換中...', 'success');
             setTimeout(() => {
-                showStatus('🔄 変換中...', 'success');
-                setTimeout(() => {
-                    convertPrediction();
-                }, 300);
+                convertPrediction();
+                showStatus('✅ 変換完了！', 'success');
             }, 300);
         }
 
@@ -962,8 +968,6 @@
             currentPreviewData = input;
             const publishBtn = document.getElementById('publish-btn');
             publishBtn.disabled = false;
-
-            showStatus('✅ 変換完了！プレビューを確認してください', 'success');
         }
 
         // 公開処理
