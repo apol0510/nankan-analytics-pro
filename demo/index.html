@@ -926,43 +926,50 @@
                 return;
             }
 
-            const lines = input.split('\n');
+            // ---で複数レースを区切る
+            const races = input.split('---').map(r => r.trim()).filter(r => r);
             const preview = document.getElementById('preview');
             preview.classList.remove('empty');
 
-            let html = '<div class="race-card">';
-            html += `<h3>${lines[0]}</h3>`;
+            let html = '';
 
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
+            races.forEach((race, raceIndex) => {
+                const lines = race.split('\n');
+                html += '<div class="race-card" style="margin-bottom: 25px;">';
+                html += `<h3>${lines[0]}</h3>`;
 
-                if (line.match(/^[◎○▲△]/)) {
-                    const parts = line.split(' ');
-                    const mark = parts[0];
-                    const number = parts[1];
-                    const name = parts[2];
-                    const type = parts[3] || '';
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
 
-                    html += `<div class="horse-item">
-                        <span class="mark">${mark}</span>
-                        <span class="name">${number} ${name}</span>
-                        <span style="color: #64748b; margin-left: 10px;">${type}</span>
-                    </div>`;
-                } else if (line.includes('モデル')) {
-                    html += `<h4 style="margin-top: 20px; color: #8b5cf6; font-weight: 700;">${line}</h4>`;
-                } else if (line.includes('馬単') || line.includes('的中確率') || line.includes('AI予測')) {
-                    html += `<p style="margin-left: 20px; color: #cbd5e1; margin-top: 5px;">${line}</p>`;
-                } else if (line.includes('総合評価') || line.includes('評価点数') || line.includes('累積スコア')) {
-                    html += `<p style="margin-left: 20px; color: #fbbf24; font-weight: 600;">${line}</p>`;
-                } else if (line.includes('注目ポイント') || line.includes('特徴量重要度')) {
-                    html += `<p style="margin-left: 20px; color: #a855f7; font-weight: 600; margin-top: 10px;">${line}</p>`;
-                } else if (line.match(/^(調子の良さ|地力|レース向き|安定性|能力上位性|展開利)/)) {
-                    html += `<p style="margin-left: 40px; color: #94a3b8;">${line}</p>`;
+                    if (line.match(/^[◎○▲△]/)) {
+                        const parts = line.split(' ');
+                        const mark = parts[0];
+                        const number = parts[1];
+                        const name = parts[2];
+                        const type = parts[3] || '';
+
+                        html += `<div class="horse-item">
+                            <span class="mark">${mark}</span>
+                            <span class="name">${number} ${name}</span>
+                            <span style="color: #64748b; margin-left: 10px;">${type}</span>
+                        </div>`;
+                    } else if (line.includes('モデル')) {
+                        html += `<h4 style="margin-top: 20px; color: #8b5cf6; font-weight: 700;">${line}</h4>`;
+                    } else if (line.includes('馬単') || line.includes('的中確率') || line.includes('AI予測')) {
+                        html += `<p style="margin-left: 20px; color: #cbd5e1; margin-top: 5px;">${line}</p>`;
+                    } else if (line.includes('総合評価') || line.includes('評価点数') || line.includes('累積スコア')) {
+                        html += `<p style="margin-left: 20px; color: #fbbf24; font-weight: 600;">${line}</p>`;
+                    } else if (line.includes('注目ポイント') || line.includes('特徴量重要度')) {
+                        html += `<p style="margin-left: 20px; color: #a855f7; font-weight: 600; margin-top: 10px;">${line}</p>`;
+                    } else if (line.match(/^(調子の良さ|地力|レース向き|安定性|能力上位性|展開利)/)) {
+                        html += `<p style="margin-left: 40px; color: #94a3b8;">${line}</p>`;
+                    }
                 }
-            }
 
-            html += '</div>';
+                html += '</div>';
+            });
+
             preview.innerHTML = html;
 
             currentPreviewData = input;
@@ -1061,48 +1068,52 @@
                 return;
             }
 
-            const lines = data.split('\n');
+            // ---で複数レースを区切る
+            const races = data.split('---').map(r => r.trim()).filter(r => r);
             let html = '';
-            let currentRace = '';
-            let horses = [];
-            let strategies = [];
-            let currentStrategy = null;
 
-            for (let line of lines) {
-                line = line.trim();
-                if (!line) continue;
+            races.forEach((raceData, raceIndex) => {
+                const lines = raceData.split('\n');
+                let currentRace = '';
+                let horses = [];
+                let strategies = [];
+                let currentStrategy = null;
 
-                if (line.match(/^\w+\d+R/)) {
-                    currentRace = line;
-                } else if (line.match(/^[◎○▲△]/)) {
-                    const parts = line.split(' ');
-                    horses.push({
-                        mark: parts[0],
-                        number: parts[1],
-                        name: parts[2],
-                        type: parts[3] || ''
-                    });
-                } else if (line.includes('モデル')) {
-                    if (currentStrategy) {
-                        strategies.push(currentStrategy);
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+
+                    if (line.match(/^\w+\d+R/)) {
+                        currentRace = line;
+                    } else if (line.match(/^[◎○▲△]/)) {
+                        const parts = line.split(' ');
+                        horses.push({
+                            mark: parts[0],
+                            number: parts[1],
+                            name: parts[2],
+                            type: parts[3] || ''
+                        });
+                    } else if (line.includes('モデル')) {
+                        if (currentStrategy) {
+                            strategies.push(currentStrategy);
+                        }
+                        currentStrategy = {
+                            title: line,
+                            bets: [],
+                            prediction: ''
+                        };
+                    } else if (line.includes('馬単') && currentStrategy) {
+                        currentStrategy.bets.push(line);
+                    } else if ((line.includes('的中確率') || line.includes('AI予測')) && currentStrategy) {
+                        currentStrategy.prediction = line;
                     }
-                    currentStrategy = {
-                        title: line,
-                        bets: [],
-                        prediction: ''
-                    };
-                } else if (line.includes('馬単') && currentStrategy) {
-                    currentStrategy.bets.push(line);
-                } else if ((line.includes('的中確率') || line.includes('AI予測')) && currentStrategy) {
-                    currentStrategy.prediction = line;
                 }
-            }
 
-            if (currentStrategy) {
-                strategies.push(currentStrategy);
-            }
+                if (currentStrategy) {
+                    strategies.push(currentStrategy);
+                }
 
-            html = `
+                html += `
                 <div class="race-card">
                     <div class="race-header">
                         <h2>${currentRace}</h2>
@@ -1170,6 +1181,7 @@
                     `).join('')}
                 </div>
             `;
+            });
 
             content.innerHTML = html;
 
