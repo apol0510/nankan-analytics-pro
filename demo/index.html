@@ -318,14 +318,15 @@
         }
 
         .status-message {
-            padding: 20px;
-            border-radius: 12px;
+            padding: 12px 20px;
+            border-radius: 10px;
             margin-top: 20px;
             display: none;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             animation: fadeInUp 0.5s ease;
             text-align: center;
+            white-space: nowrap;
         }
 
         .status-message.success {
@@ -718,9 +719,12 @@
                         予想データ入力
                     </h2>
 
-                    <button class="sample-btn" onclick="loadSampleData()">
-                        📋 サンプルデータを読み込む
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <button class="sample-btn" onclick="loadSampleData()" style="margin-bottom: 0;">
+                            📋 サンプルデータを読み込む
+                        </button>
+                        <div id="status" class="status-message" style="margin-top: 0; flex: 1;"></div>
+                    </div>
 
                     <div class="form-group">
                         <label for="prediction-input">
@@ -758,8 +762,6 @@
                             クリア
                         </button>
                     </div>
-
-                    <div id="status" class="status-message"></div>
                 </div>
 
                 <!-- 右側: プレビューエリア -->
@@ -898,7 +900,7 @@
 的中確率71%`;
 
             document.getElementById('prediction-input').value = sampleData;
-            showStatus('サンプルデータを読み込みました！', 'success');
+            showStatus('✅ サンプルデータ読み込み完了', 'success');
 
             // 自動的に変換してプレビュー表示
             setTimeout(() => {
@@ -958,7 +960,7 @@
             const publishBtn = document.getElementById('publish-btn');
             publishBtn.disabled = false;
 
-            showStatus('予想データを変換しました！プレビューを確認してください', 'success');
+            showStatus('✅ 変換完了！プレビューを確認してください', 'success');
         }
 
         // 公開処理
