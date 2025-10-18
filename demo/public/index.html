@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>競馬予想 - NANKAN Analytics Pro デモ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ヘッダー */
+        .site-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .site-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .site-header .subtitle {
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .site-header .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 15px 25px;
+        }
+
+        .stat-item .label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .value {
+            color: #3b82f6;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* レースカード */
+        .race-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .race-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .race-header h2 {
+            font-size: 24px;
+            color: #3b82f6;
+        }
+
+        .race-header .race-info {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* 馬データ */
+        .horse-section {
+            margin-bottom: 30px;
+        }
+
+        .horse-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .horse-card.main {
+            border-left-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .horse-card.sub {
+            border-left-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .horse-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .horse-mark {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .horse-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #8b5cf6;
+        }
+
+        .horse-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .horse-type {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .horse-factors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .factor-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        .importance-bars {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .importance-item {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .importance-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .importance-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .importance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .importance-value {
+            font-size: 14px;
+            color: #3b82f6;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        /* 買い目セクション */
+        .strategy-section {
+            margin-top: 30px;
+        }
+
+        .strategy-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+        }
+
+        .bet-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .bet-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bet-numbers {
+            color: #8b5cf6;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .bet-points {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+
+        .ai-prediction {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            color: #8b5cf6;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* 空状態 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #475569;
+            font-size: 16px;
+        }
+
+        /* 管理画面ボタン */
+        .admin-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .race-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .importance-bars {
+                grid-template-columns: 1fr;
+            }
+
+            .site-header .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="site-header">
+            <h1>🏇 競馬予想サイト（デモ）</h1>
+            <p class="subtitle">AI・機械学習による高精度予想</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="label">的中率</div>
+                    <div class="value">78%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">平均配当</div>
+                    <div class="value">¥281,340</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">期待リターン</div>
+                    <div class="value">265%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- コンテンツエリア -->
+        <div id="content"></div>
+    </div>
+
+    <!-- 管理画面ボタン -->
+    <button class="admin-btn" onclick="openAdmin()">
+        ⚙️ 管理画面を開く
+    </button>
+
+    <script>
+        // データ読み込み
+        function loadPrediction() {
+            console.log('🔄 データ読み込み開始');
+            const data = localStorage.getItem('demo-prediction');
+            console.log('📋 LocalStorageから取得したデータ:', data ? 'データあり（' + data.length + '文字）' : 'データなし');
+
+            const content = document.getElementById('content');
+
+            if (!data) {
+                // 空状態表示
+                console.log('❌ データが存在しないため空状態を表示');
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <h3>予想データがまだ公開されていません</h3>
+                        <p>管理画面から予想データを入力・公開してください</p>
+                        <button onclick="debugLocalStorage()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔍 LocalStorage確認
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            console.log('✅ データ解析開始');
+
+            // データをパース
+            const lines = data.split('\n');
+            let html = '';
+            let currentRace = '';
+            let horses = [];
+            let strategies = [];
+            let currentStrategy = null;
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // レース情報
+                if (line.match(/^\w+\d+R/)) {
+                    currentRace = line;
+                }
+                // 馬データ
+                else if (line.match(/^[◎○▲△]/)) {
+                    const parts = line.split(' ');
+                    horses.push({
+                        mark: parts[0],
+                        number: parts[1],
+                        name: parts[2],
+                        type: parts[3] || ''
+                    });
+                }
+                // 戦略
+                else if (line.includes('モデル')) {
+                    if (currentStrategy) {
+                        strategies.push(currentStrategy);
+                    }
+                    currentStrategy = {
+                        title: line,
+                        bets: [],
+                        prediction: ''
+                    };
+                }
+                // 買い目
+                else if (line.includes('馬単') && currentStrategy) {
+                    currentStrategy.bets.push(line);
+                }
+                // AI予測
+                else if (line.includes('AI予測') && currentStrategy) {
+                    currentStrategy.prediction = line;
+                }
+            }
+
+            if (currentStrategy) {
+                strategies.push(currentStrategy);
+            }
+
+            // HTML生成
+            html = `
+                <div class="race-card">
+                    <div class="race-header">
+                        <h2>${currentRace}</h2>
+                        <div class="race-info">
+                            ${new Date().toLocaleDateString('ja-JP')} 発走予定
+                        </div>
+                    </div>
+
+                    <div class="horse-section">
+                        ${horses.map((horse, index) => `
+                            <div class="horse-card ${index === 0 ? 'main' : index === 1 ? 'sub' : ''}">
+                                <div class="horse-header">
+                                    <span class="horse-mark">${horse.mark}</span>
+                                    <span class="horse-number">${horse.number}</span>
+                                    <span class="horse-name">${horse.name}</span>
+                                    <span class="horse-type">${horse.type}</span>
+                                </div>
+                                ${index < 2 ? `
+                                    <div class="horse-factors">
+                                        <div class="factor-item">
+                                            <span>★</span>
+                                            <span>総合評価:★★★${index === 0 ? '★' : ''}</span>
+                                        </div>
+                                        <div class="factor-item">
+                                            <span>★</span>
+                                            <span>累積スコア: ${index === 0 ? '89' : '86'}pt</span>
+                                        </div>
+                                    </div>
+                                    <div class="importance-bars">
+                                        <div class="importance-item">
+                                            <div class="importance-label">安定性</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${index === 0 ? '94' : '82'}%"></div>
+                                            </div>
+                                            <div class="importance-value">${index === 0 ? '94' : '82'}%</div>
+                                        </div>
+                                        <div class="importance-item">
+                                            <div class="importance-label">能力上位性</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${index === 0 ? '92' : '90'}%"></div>
+                                            </div>
+                                            <div class="importance-value">${index === 0 ? '92' : '90'}%</div>
+                                        </div>
+                                        <div class="importance-item">
+                                            <div class="importance-label">展開利</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${index === 0 ? '81' : '86'}%"></div>
+                                            </div>
+                                            <div class="importance-value">${index === 0 ? '81' : '86'}%</div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${strategies.map(strategy => `
+                        <div class="strategy-section">
+                            <div class="strategy-title">${strategy.title}</div>
+                            <div class="bet-list">
+                                ${strategy.bets.map(bet => {
+                                    const match = bet.match(/(.+)　(\d+)点/);
+                                    return `
+                                        <div class="bet-item">
+                                            <span class="bet-numbers">${match ? match[1] : bet}</span>
+                                            <span class="bet-points">${match ? match[2] : ''}点</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div class="ai-prediction">
+                                ${strategy.prediction}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            content.innerHTML = html;
+
+            // アニメーション
+            setTimeout(() => {
+                document.querySelectorAll('.importance-fill').forEach(el => {
+                    const width = el.style.width;
+                    el.style.width = '0';
+                    setTimeout(() => {
+                        el.style.width = width;
+                    }, 100);
+                });
+            }, 100);
+        }
+
+        function openAdmin() {
+            window.open('../admin/index.html', '_blank');
+        }
+
+        // デバッグ用：LocalStorageの内容を確認
+        function debugLocalStorage() {
+            console.log('🔍 LocalStorageデバッグ開始');
+            const allKeys = Object.keys(localStorage);
+            console.log('📋 LocalStorage内の全キー:', allKeys);
+
+            allKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                console.log(`  - ${key}: ${value ? value.substring(0, 100) + '...' : 'null'}`);
+            });
+
+            const demoData = localStorage.getItem('demo-prediction');
+            if (demoData) {
+                alert('✅ データが見つかりました！\n\n' + demoData.substring(0, 200) + '...');
+            } else {
+                alert('❌ demo-predictionキーが見つかりません。\n\n管理画面で「公開サイトに反映」をクリックしてください。\n\n存在するキー: ' + (allKeys.length > 0 ? allKeys.join(', ') : 'なし'));
+            }
+        }
+
+        // 初期読み込み
+        loadPrediction();
+
+        // 定期的に更新チェック（5秒ごと）
+        setInterval(loadPrediction, 5000);
+    </script>
+</body>
+</html>
