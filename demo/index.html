@@ -935,39 +935,85 @@
 
             races.forEach((race, raceIndex) => {
                 const lines = race.split('\n');
-                html += '<div class="race-card" style="margin-bottom: 25px;">';
-                html += `<h3>${lines[0]}</h3>`;
+                let horses = [];
+                let currentHorse = null;
+                let raceTitle = lines[0];
 
+                // データをパース
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
 
                     if (line.match(/^[◎○▲△]/)) {
+                        if (currentHorse) {
+                            horses.push(currentHorse);
+                        }
                         const parts = line.split(' ');
-                        const mark = parts[0];
-                        const number = parts[1];
-                        const name = parts[2];
-                        const type = parts[3] || '';
-
-                        html += `<div class="horse-item">
-                            <span class="mark">${mark}</span>
-                            <span class="name">${number} ${name}</span>
-                            <span style="color: #64748b; margin-left: 10px;">${type}</span>
-                        </div>`;
-                    } else if (line.includes('モデル')) {
-                        html += `<h4 style="margin-top: 20px; color: #8b5cf6; font-weight: 700;">${line}</h4>`;
-                    } else if (line.includes('馬単') || line.includes('的中確率') || line.includes('AI予測')) {
-                        html += `<p style="margin-left: 20px; color: #cbd5e1; margin-top: 5px;">${line}</p>`;
-                    } else if (line.includes('総合評価') || line.includes('評価点数') || line.includes('累積スコア')) {
-                        html += `<p style="margin-left: 20px; color: #fbbf24; font-weight: 600;">${line}</p>`;
-                    } else if (line.includes('注目ポイント') || line.includes('特徴量重要度')) {
-                        html += `<p style="margin-left: 20px; color: #a855f7; font-weight: 600; margin-top: 10px;">${line}</p>`;
-                    } else if (line.match(/^(調子の良さ|地力|レース向き|安定性|能力上位性|展開利)/)) {
-                        html += `<p style="margin-left: 40px; color: #94a3b8;">${line}</p>`;
+                        currentHorse = {
+                            mark: parts[0],
+                            number: parts[1],
+                            name: parts[2],
+                            type: parts[3] || '',
+                            stats: {}
+                        };
+                    } else if (currentHorse) {
+                        if (line.includes('調子の良さ')) {
+                            currentHorse.stats.condition = line.match(/(\d+)%/)?.[1] || '0';
+                        } else if (line.includes('地力')) {
+                            currentHorse.stats.ability = line.match(/(\d+)%/)?.[1] || '0';
+                        } else if (line.includes('レース向き')) {
+                            currentHorse.stats.suitability = line.match(/(\d+)%/)?.[1] || '0';
+                        }
                     }
                 }
+                if (currentHorse) {
+                    horses.push(currentHorse);
+                }
 
-                html += '</div>';
+                // HTMLを生成（公開サイトと同じデザイン）
+                html += `
+                <div class="race-card" style="margin-bottom: 25px;">
+                    <div class="race-header">
+                        <h2 style="font-size: 24px;">${raceTitle}</h2>
+                    </div>
+                    <div class="horse-section">
+                        ${horses.map((horse, index) => `
+                            <div class="horse-card ${index === 0 ? 'main' : index === 1 ? 'sub' : ''}">
+                                <div class="horse-header">
+                                    <span class="horse-mark">${horse.mark}</span>
+                                    <span class="horse-number">${horse.number}</span>
+                                    <span class="horse-name">${horse.name}</span>
+                                    <span class="horse-type">${horse.type}</span>
+                                </div>
+                                ${horse.stats.condition ? `
+                                    <div class="importance-bars">
+                                        <div class="importance-item">
+                                            <div class="importance-label">調子の良さ</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${horse.stats.condition}%"></div>
+                                            </div>
+                                            <div class="importance-value">${horse.stats.condition}%</div>
+                                        </div>
+                                        <div class="importance-item">
+                                            <div class="importance-label">地力</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${horse.stats.ability}%"></div>
+                                            </div>
+                                            <div class="importance-value">${horse.stats.ability}%</div>
+                                        </div>
+                                        <div class="importance-item">
+                                            <div class="importance-label">レース向き</div>
+                                            <div class="importance-bar">
+                                                <div class="importance-fill" style="width: ${horse.stats.suitability}%"></div>
+                                            </div>
+                                            <div class="importance-value">${horse.stats.suitability}%</div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
             });
 
             preview.innerHTML = html;
