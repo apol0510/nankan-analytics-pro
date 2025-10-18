@@ -246,10 +246,15 @@
             color: white;
         }
 
-        .btn-success:hover {
+        .btn-success:not(:disabled):hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
             animation: pulse 1s ease infinite;
+        }
+
+        .btn-success:not(:disabled):active {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
         }
 
         .btn-secondary {
@@ -267,6 +272,12 @@
             opacity: 0.4;
             cursor: not-allowed;
             pointer-events: none;
+        }
+
+        .btn:not(:disabled) {
+            opacity: 1;
+            cursor: pointer;
+            pointer-events: auto;
         }
 
         .sample-btn {
@@ -937,13 +948,18 @@
             preview.innerHTML = html;
 
             currentPreviewData = input;
-            document.getElementById('publish-btn').disabled = false;
+            const publishBtn = document.getElementById('publish-btn');
+            publishBtn.disabled = false;
+            console.log('Publish button enabled:', !publishBtn.disabled);
 
             showStatus('予想データを変換しました！プレビューを確認してください', 'success');
         }
 
         // 公開処理
         function publishPrediction() {
+            console.log('publishPrediction called');
+            console.log('currentPreviewData:', currentPreviewData);
+
             if (!currentPreviewData) {
                 showStatus('先に予想データを変換してください', 'error');
                 return;
