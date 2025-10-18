@@ -881,6 +881,11 @@
 
             document.getElementById('prediction-input').value = sampleData;
             showStatus('サンプルデータを読み込みました！', 'success');
+
+            // 自動的に変換してプレビュー表示
+            setTimeout(() => {
+                convertPrediction();
+            }, 300);
         }
 
         // 予想データ変換
