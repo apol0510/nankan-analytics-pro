@@ -721,7 +721,7 @@
 
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
                         <button class="sample-btn" onclick="loadSampleData()" style="margin-bottom: 0;">
-                            📋 サンプルデータを読み込む
+                            📋 サンプルデータで試す
                         </button>
                         <div id="status" class="status-message" style="margin-top: 0; flex: 1;"></div>
                     </div>
@@ -900,11 +900,14 @@
 的中確率71%`;
 
             document.getElementById('prediction-input').value = sampleData;
-            showStatus('✅ サンプルデータ読み込み完了', 'success');
+            showStatus('📥 読み込み中...', 'success');
 
             // 自動的に変換してプレビュー表示
             setTimeout(() => {
-                convertPrediction();
+                showStatus('🔄 変換中...', 'success');
+                setTimeout(() => {
+                    convertPrediction();
+                }, 300);
             }, 300);
         }
 
