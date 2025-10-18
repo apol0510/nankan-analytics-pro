@@ -318,25 +318,30 @@
         }
 
         .status-message {
-            padding: 16px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             margin-top: 20px;
             display: none;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 16px;
+            animation: fadeInUp 0.5s ease;
+            text-align: center;
         }
 
         .status-message.success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 2px solid rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.2);
+            border: 3px solid rgba(16, 185, 129, 0.6);
             color: #10b981;
             display: block;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
         }
 
         .status-message.error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 2px solid rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.2);
+            border: 3px solid rgba(239, 68, 68, 0.6);
             color: #ef4444;
             display: block;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
         }
 
         /* 公開サイトスタイル */
@@ -950,23 +955,36 @@
             currentPreviewData = input;
             const publishBtn = document.getElementById('publish-btn');
             publishBtn.disabled = false;
-            console.log('Publish button enabled:', !publishBtn.disabled);
 
             showStatus('予想データを変換しました！プレビューを確認してください', 'success');
         }
 
         // 公開処理
         function publishPrediction() {
-            console.log('publishPrediction called');
-            console.log('currentPreviewData:', currentPreviewData);
 
             if (!currentPreviewData) {
                 showStatus('先に予想データを変換してください', 'error');
                 return;
             }
 
+            // ボタンを一時的に無効化
+            const publishBtn = document.getElementById('publish-btn');
+            publishBtn.disabled = true;
+            publishBtn.textContent = '✅ 反映中...';
+
             localStorage.setItem('nankan-pro-demo-prediction', currentPreviewData);
-            showStatus('✅ 公開サイトに反映しました！上部の「🌐 公開サイト」ボタンから確認できます', 'success');
+
+            // 成功メッセージを表示
+            setTimeout(() => {
+                publishBtn.innerHTML = '<span>✅</span> 公開完了！';
+                showStatus('✅ 公開サイトに反映しました！上部の「🌐 公開サイト」ボタンから確認できます', 'success');
+
+                // 2秒後にボタンを元に戻す
+                setTimeout(() => {
+                    publishBtn.disabled = false;
+                    publishBtn.innerHTML = '<span>🚀</span> 公開サイトに反映';
+                }, 2000);
+            }, 500);
         }
 
         // クリア
@@ -983,11 +1001,17 @@
             const status = document.getElementById('status');
             status.textContent = message;
             status.className = `status-message ${type}`;
+            status.style.display = 'block';
 
             if (type === 'success') {
                 setTimeout(() => {
-                    status.style.display = 'none';
-                }, 5000);
+                    status.style.opacity = '0';
+                    status.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                        status.style.opacity = '1';
+                    }, 500);
+                }, 8000);
             }
         }
 
