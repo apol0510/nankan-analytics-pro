@@ -778,6 +778,8 @@
                             公開サイトに反映
                         </button>
                     </div>
+
+                    <div id="publish-status" class="status-message"></div>
                 </div>
             </div>
         </div>
@@ -963,7 +965,7 @@
         function publishPrediction() {
 
             if (!currentPreviewData) {
-                showStatus('先に予想データを変換してください', 'error');
+                showPublishStatus('先に予想データを変換してください', 'error');
                 return;
             }
 
@@ -977,7 +979,7 @@
             // 成功メッセージを表示
             setTimeout(() => {
                 publishBtn.innerHTML = '<span>✅</span> 公開完了！';
-                showStatus('✅ 公開サイトに反映しました！上部の「🌐 公開サイト」ボタンから確認できます', 'success');
+                showPublishStatus('✅ 公開サイトに反映しました！上部の「🌐 公開サイト」ボタンから確認できます', 'success');
 
                 // 2秒後にボタンを元に戻す
                 setTimeout(() => {
@@ -996,9 +998,28 @@
             currentPreviewData = null;
         }
 
-        // ステータス表示
+        // ステータス表示（左側の入力エリア用）
         function showStatus(message, type) {
             const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status-message ${type}`;
+            status.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.opacity = '0';
+                    status.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                        status.style.opacity = '1';
+                    }, 500);
+                }, 8000);
+            }
+        }
+
+        // ステータス表示（右側の公開ボタン用）
+        function showPublishStatus(message, type) {
+            const status = document.getElementById('publish-status');
             status.textContent = message;
             status.className = `status-message ${type}`;
             status.style.display = 'block';
