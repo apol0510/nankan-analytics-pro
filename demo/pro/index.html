@@ -1109,6 +1109,14 @@
 
                 console.log(`========== データ形式を検出中 ==========`);
 
+                // 最初の10行を表示
+                const lines = rawData.split('\n');
+                console.log(`全${lines.length}行`);
+                console.log('最初の10行:');
+                lines.slice(0, 10).forEach((line, i) => {
+                    console.log(`行${i}: "${line.substring(0, 100)}"`);
+                });
+
                 // HTML形式かどうかチェック
                 if (rawData.includes('<td') || rawData.includes('<tr')) {
                     console.log('✅ HTML形式を検出');
