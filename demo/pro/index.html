@@ -1105,120 +1105,88 @@
             }
 
             try {
-                // Parse horse data from complex format
                 const horses = [];
-                const lines = rawData.split('\n');
+                const lines = rawData.split('\n').map(line => line.trim()).filter(line => line);
 
-                let currentHorse = null;
-                let horseNum = null;
-                let horseName = null;
+                console.log(`========== CSV形式パース: 全${lines.length}行 ==========`);
 
-                console.log(`========== 全${lines.length}行をパース開始 ==========`);
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-
-                    // 空行をスキップ
-                    if (!line) continue;
-
-                    // 最初の10行は生の内容を表示
-                    if (i < 10) {
-                        console.log(`行${i}: "${line.substring(0, 50)}" (長さ${line.length})`);
-                    }
-
-                    // ヘッダー行をスキップ
-                    if (line.includes('枠番') || line.includes('競走馬') || line.includes('騎手・調教師')) {
-                        console.log('ヘッダー行をスキップ:', line.substring(0, 50));
-                        continue;
-                    }
-
-                    // 馬番と馬名を検出（例: "1     1     テルケンユミカブト     新原周（川崎）"）
-                    const horseMatch = line.match(/^(\d+)\s+(\d+)\s+(.+)/);
-                    if (horseMatch) {
-                        const waku = parseInt(horseMatch[1]);
-                        const baban = parseInt(horseMatch[2]);
-
-                        console.log(`馬候補: 枠${waku} 馬番${baban} "${horseMatch[3].substring(0, 30)}"`);
-
-                        // 枠番と馬番が一致、かつ1-18の範囲内
-                        if (waku === baban && waku >= 1 && waku <= 18) {
-                            // 前の馬を保存（成績データがある場合のみ）
-                            if (currentHorse && horseNum && horseName) {
-                                if (currentHorse.totalRaces) {
-                                    console.log(`✅ 馬を保存: ${horseNum} ${horseName}`, currentHorse.totalRaces);
-                                    horses.push({num: horseNum, name: horseName, stats: currentHorse});
-                                } else {
-                                    console.log(`⚠️ 成績データなし: ${horseNum} ${horseName}`);
-                                }
-                            }
-
-                            horseNum = horseMatch[2];
-                            // 馬名は3番目の要素の最初の単語（カタカナのみ抽出）
-                            const nameMatch = horseMatch[3].match(/([ァ-ヶー]+)/);
-                            horseName = nameMatch ? nameMatch[1] : horseMatch[3].trim().split(/\s+/)[0];
-                            console.log(`🐴 新しい馬: ${horseNum} ${horseName}`);
-                            currentHorse = {
-                                distance: {},
-                                track: {},
-                                surface: {},
-                                recentRaces: []
-                            };
-                            continue;
-                        }
-                    }
-
-                    // 距離別成績を検出（例: "大1459良ダ 6"）
-                    if (line.includes('ダ') && /\d{4}/.test(line)) {
-                        const distMatch = line.match(/(\d{4})/);
-                        if (distMatch && currentHorse) {
-                            const dist = distMatch[1];
-                            currentHorse.distance[dist] = line;
-                        }
-                    }
-
-                    // 成績データを検出（例: "全       1-     0-     0-     9"）
-                    if (line.includes('全')) {
-                        console.log('🔍 「全」を含む行:', line);
-                        if (currentHorse) {
-                            console.log('  → currentHorseあり、成績パース試行');
-                            const statsMatch = line.match(/全\s+(\d+)-\s+(\d+)-\s+(\d+)-\s+(\d+)/);
-                            if (statsMatch) {
-                                const [_, w, p, s, r] = statsMatch;
-                                const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
-                                console.log(`  ✅ 成績検出: ${w}-${p}-${s}-${r} (合計${total})`);
-                                if (total > 0 && !currentHorse.totalRaces) {
-                                    currentHorse.totalRaces = {w, p, s, r, total};
-                                    currentHorse.winRate = (parseInt(w) / total * 100).toFixed(1);
-                                    currentHorse.placeRate = ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1);
-                                    console.log(`  ✅ 成績保存: 勝率${currentHorse.winRate}% 連対率${currentHorse.placeRate}%`);
-                                }
-                            } else {
-                                console.log('  ⚠️ 正規表現マッチ失敗:', line.substring(0, 100));
-                            }
-                        } else {
-                            console.log('  ⚠️ currentHorse未設定');
-                        }
-                    }
-
-                    // 直近着順を検出（例: "9 25.10.06　良　12頭"）
-                    const raceMatch = line.match(/^(\d+)\s+\d{2}\.\d{2}\.\d{2}/);
-                    if (raceMatch && currentHorse) {
-                        const rank = parseInt(raceMatch[1]);
-                        // 着順は1-18の範囲内と想定
-                        if (rank >= 1 && rank <= 18) {
-                            currentHorse.recentRaces.push(rank);
-                            console.log(`🏁 直近着順追加: ${rank}着`);
-                        }
+                // CSVとしてパース
+                // ヘッダー行を見つける
+                let headerIndex = -1;
+                for (let i = 0; i < Math.min(20, lines.length); i++) {
+                    if (lines[i].includes('馬') && (lines[i].includes('番') || lines[i].includes('名'))) {
+                        headerIndex = i;
+                        console.log(`ヘッダー行発見 (行${i}): ${lines[i].substring(0, 100)}`);
+                        break;
                     }
                 }
 
-                // 最後の馬を追加（成績データがある場合のみ）
-                if (currentHorse && horseNum && horseName) {
-                    if (currentHorse.totalRaces) {
-                        console.log(`✅ 最後の馬を保存: ${horseNum} ${horseName}`, currentHorse.totalRaces);
-                        horses.push({num: horseNum, name: horseName, stats: currentHorse});
-                    } else {
-                        console.log(`⚠️ 最後の馬は成績データなし: ${horseNum} ${horseName}`);
+                if (headerIndex === -1) {
+                    // ヘッダーが見つからない場合、データが違う形式かもしれない
+                    showStatus('input-status', '⚠️ CSV形式を検出できませんでした。出馬表全体をコピーしてください', 'error');
+                    return;
+                }
+
+                // データ行をパース (ヘッダーの次の行から)
+                for (let i = headerIndex + 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line) continue;
+
+                    // カンマ区切りで分割
+                    const cols = line.split(',').map(col => col.trim());
+
+                    // デバッグ: 最初の5行を表示
+                    if (i - headerIndex <= 5) {
+                        console.log(`データ行${i}: ${cols.length}列 →`, cols.slice(0, 6));
+                    }
+
+                    // 馬番と馬名を抽出 (推測: 列0=枠番, 列1=馬番, 列3=馬名あたり)
+                    if (cols.length < 4) continue;
+
+                    const babanStr = cols[1]; // 馬番列
+                    const horseNameRaw = cols[3]; // 馬名列
+
+                    // 馬番が数字の場合のみ処理
+                    const baban = parseInt(babanStr);
+                    if (isNaN(baban) || baban < 1 || baban > 18) continue;
+
+                    // 馬名からカタカナを抽出
+                    const nameMatch = horseNameRaw.match(/([ァ-ヶー]+)/);
+                    const horseName = nameMatch ? nameMatch[1] : horseNameRaw;
+
+                    // 全成績を探す (列10-15あたりと推測)
+                    let statsData = null;
+                    for (let j = 10; j < Math.min(cols.length, 20); j++) {
+                        const col = cols[j];
+                        // "X-X-X-X" 形式をチェック
+                        const statsMatch = col.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
+                        if (statsMatch) {
+                            const [_, w, p, s, r] = statsMatch;
+                            const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
+                            if (total > 0) {
+                                statsData = {
+                                    w, p, s, r, total,
+                                    winRate: (parseInt(w) / total * 100).toFixed(1),
+                                    placeRate: ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1)
+                                };
+                                console.log(`✅ 馬${baban} ${horseName}: 成績${col} (勝率${statsData.winRate}%)`);
+                                break;
+                            }
+                        }
+                    }
+
+                    // 成績データがある馬のみ追加
+                    if (statsData) {
+                        horses.push({
+                            num: baban,
+                            name: horseName,
+                            stats: {
+                                totalRaces: statsData,
+                                winRate: statsData.winRate,
+                                placeRate: statsData.placeRate,
+                                recentRaces: [] // CSVからは取得しない
+                            }
+                        });
                     }
                 }
 
