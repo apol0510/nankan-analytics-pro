@@ -1106,60 +1106,68 @@
 
             try {
                 const horses = [];
-                const lines = rawData.split('\n').map(line => line.trim()).filter(line => line);
 
-                console.log(`========== CSV形式パース: 全${lines.length}行 ==========`);
+                console.log(`========== データ形式を検出中 ==========`);
 
-                // CSVとしてパース
-                // ヘッダー行を見つける
-                let headerIndex = -1;
-                for (let i = 0; i < Math.min(20, lines.length); i++) {
-                    if (lines[i].includes('馬') && (lines[i].includes('番') || lines[i].includes('名'))) {
-                        headerIndex = i;
-                        console.log(`ヘッダー行発見 (行${i}): ${lines[i].substring(0, 100)}`);
-                        break;
-                    }
-                }
+                // HTML形式かどうかチェック
+                if (rawData.includes('<td') || rawData.includes('<tr')) {
+                    console.log('✅ HTML形式を検出');
 
-                if (headerIndex === -1) {
-                    // ヘッダーが見つからない場合、データが違う形式かもしれない
-                    showStatus('input-status', '⚠️ CSV形式を検出できませんでした。出馬表全体をコピーしてください', 'error');
-                    return;
-                }
+                    // DOMParserでHTMLをパース
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(rawData, 'text/html');
 
-                // データ行をパース (ヘッダーの次の行から)
-                for (let i = headerIndex + 1; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (!line) continue;
+                    // すべての<tr>（テーブル行）を取得
+                    const rows = doc.querySelectorAll('tr');
+                    console.log(`全${rows.length}行のテーブル行を検出`);
 
-                    // カンマ区切りで分割
-                    const cols = line.split(',').map(col => col.trim());
+                    let horseCount = 0;
+                    rows.forEach((row, index) => {
+                        // 各行のセル（<td>）を取得
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
 
-                    // デバッグ: 最初の50行を詳細表示
-                    if (i - headerIndex <= 50) {
-                        console.log(`行${i}: ${cols.length}列 → [${cols.slice(0, 15).join('] [') || '空'}]`);
-                    }
+                        // デバッグ: 最初の10行を表示
+                        if (index < 10) {
+                            const cellTexts = Array.from(cells).map(c => c.textContent.trim().substring(0, 20));
+                            console.log(`行${index}: ${cells.length}セル →`, cellTexts);
+                        }
 
-                    // 馬番と馬名を抽出 (推測: 列0=枠番, 列1=馬番, 列3=馬名あたり)
-                    if (cols.length < 4) continue;
+                        // 馬名を含むセルを探す（カタカナが含まれるセル）
+                        let horseName = null;
+                        let horseCell = null;
+                        for (const cell of cells) {
+                            const text = cell.textContent.trim();
+                            const match = text.match(/^([ァ-ヶー]{3,})/);
+                            if (match) {
+                                horseName = match[1];
+                                horseCell = cell;
+                                break;
+                            }
+                        }
 
-                    const babanStr = cols[1]; // 馬番列
-                    const horseNameRaw = cols[3]; // 馬名列
+                        if (!horseName) return; // 馬名がない行はスキップ
 
-                    // 馬番が数字の場合のみ処理
-                    const baban = parseInt(babanStr);
-                    if (isNaN(baban) || baban < 1 || baban > 18) continue;
+                        // 馬番を探す（rowspan="1"で数字の<td>）
+                        let baban = null;
+                        for (const cell of cells) {
+                            const text = cell.textContent.trim();
+                            const num = parseInt(text);
+                            if (!isNaN(num) && num >= 1 && num <= 18 && text.length <= 2) {
+                                baban = num;
+                                break;
+                            }
+                        }
 
-                    // 馬名からカタカナを抽出
-                    const nameMatch = horseNameRaw.match(/([ァ-ヶー]+)/);
-                    const horseName = nameMatch ? nameMatch[1] : horseNameRaw;
+                        if (!baban) {
+                            console.log(`⚠️ 馬名${horseName}あるが馬番なし`);
+                            return;
+                        }
 
-                    // 全成績を探す (列10-15あたりと推測)
-                    let statsData = null;
-                    for (let j = 10; j < Math.min(cols.length, 20); j++) {
-                        const col = cols[j];
-                        // "X-X-X-X" 形式をチェック
-                        const statsMatch = col.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
+                        // 成績データを探す (全ての行テキストから "X-X-X-X" 形式を検索)
+                        let statsData = null;
+                        const rowText = row.textContent;
+                        const statsMatch = rowText.match(/(\d+)-\s*(\d+)-\s*(\d+)-\s*(\d+)/);
                         if (statsMatch) {
                             const [_, w, p, s, r] = statsMatch;
                             const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
@@ -1169,28 +1177,37 @@
                                     winRate: (parseInt(w) / total * 100).toFixed(1),
                                     placeRate: ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1)
                                 };
-                                console.log(`✅ 馬${baban} ${horseName}: 成績${col} (勝率${statsData.winRate}%)`);
-                                break;
                             }
                         }
-                    }
 
-                    // 成績データがある馬のみ追加
-                    if (statsData) {
-                        horses.push({
-                            num: baban,
-                            name: horseName,
-                            stats: {
-                                totalRaces: statsData,
-                                winRate: statsData.winRate,
-                                placeRate: statsData.placeRate,
-                                recentRaces: [] // CSVからは取得しない
-                            }
-                        });
-                    }
+                        // 成績データがある場合のみ追加
+                        if (statsData) {
+                            horses.push({
+                                num: baban,
+                                name: horseName,
+                                stats: {
+                                    totalRaces: statsData,
+                                    winRate: statsData.winRate,
+                                    placeRate: statsData.placeRate,
+                                    recentRaces: []
+                                }
+                            });
+                            console.log(`✅ 馬${baban} ${horseName}: 成績${statsMatch[0]} (勝率${statsData.winRate}%)`);
+                            horseCount++;
+                        } else {
+                            console.log(`⚠️ 馬${baban} ${horseName}: 成績データなし`);
+                        }
+                    });
+
+                    console.log(`検出した馬: ${horses.length}頭`);
+                } else {
+                    // CSV形式として処理（後方互換性）
+                    console.log('⚠️ HTML形式ではありません。CSV/テキスト形式として処理を試みます');
+                    showStatus('input-status', '⚠️ HTML形式を検出できませんでした。ブラウザで出馬表ページを開き、ページ全体を選択してコピーしてください', 'error');
+                    return;
                 }
 
-                console.log(`検出した馬: ${horses.length}頭`, horses);
+                console.log(`最終結果: ${horses.length}頭`, horses);
 
                 if (horses.length === 0) {
                     showStatus('input-status', '⚠️ 馬データを検出できませんでした。出馬表全体をコピーしてください', 'error');
