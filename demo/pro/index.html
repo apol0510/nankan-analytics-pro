@@ -423,6 +423,109 @@
             color: var(--success);
         }
 
+        /* Professional Styles */
+        .data-grid {
+            overflow-x: auto;
+        }
+
+        .analysis-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .analysis-table thead {
+            background: var(--bg-main);
+        }
+
+        .analysis-table th {
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .analysis-table td {
+            padding: 14px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-cell {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .horse-num {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 15px;
+        }
+
+        /* Score Bars */
+        .score-cell {
+            position: relative;
+            padding: 4px;
+        }
+
+        .score-value {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .score-bar-mini {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-main);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .score-fill-mini {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .fill-total { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+        .fill-speed { background: linear-gradient(90deg, #10b981, #14b8a6); }
+        .fill-stable { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .fill-power { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .fill-adapt { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+        .prob-cell {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-bar {
+            width: 30px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -636,7 +739,7 @@
             return html || '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">データがありません</div></div>';
         }
 
-        // Convert data to HTML
+        // Convert data to Professional HTML
         function convertToHTML(data) {
             const races = data.split('---').map(r => r.trim()).filter(r => r);
             let html = '';
@@ -653,25 +756,51 @@
                         <div class="race-header">
                             <div class="race-title">${header}</div>
                             <div class="race-meta">
-                                <div class="meta-item">
-                                    🏇 ${horses.length}頭立て
-                                </div>
-                                <div class="meta-item">
-                                    📅 ${new Date().toLocaleDateString('ja-JP')}
-                                </div>
+                                <div>🏇 ${horses.length}頭立て</div>
+                                <div>📅 ${new Date().toLocaleDateString('ja-JP')}</div>
+                                <div>⏰ ${new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})}</div>
                             </div>
                         </div>
-                        <table class="horse-table">
-                            <thead>
-                                <tr>
-                                    <th>順位</th>
-                                    <th>馬番</th>
-                                    <th>馬名</th>
-                                    <th>評価スコア</th>
-                                    <th>的中確率</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-bar fill-total"></div>
+                                <span>総合評価</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-bar fill-speed"></div>
+                                <span>スピード指数</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-bar fill-stable"></div>
+                                <span>安定性</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-bar fill-power"></div>
+                                <span>地力</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-bar fill-adapt"></div>
+                                <span>適性</span>
+                            </div>
+                        </div>
+
+                        <div class="data-grid">
+                            <table class="analysis-table">
+                                <thead>
+                                    <tr>
+                                        <th>順位</th>
+                                        <th>馬番</th>
+                                        <th style="text-align: left;">馬名</th>
+                                        <th>総合</th>
+                                        <th>スピード</th>
+                                        <th>安定性</th>
+                                        <th>地力</th>
+                                        <th>適性</th>
+                                        <th>的中率</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                 `;
 
                 horses.forEach((horse, i) => {
@@ -679,30 +808,52 @@
                     if (parts.length < 7) return;
 
                     const [num, name, score1, score2, score3, score4, score5, prob] = parts;
-                    const avgScore = ((parseFloat(score1) + parseFloat(score2) + parseFloat(score3)) / 3).toFixed(1);
-                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
 
                     html += `
                         <tr>
-                            <td>
-                                <span class="rank-badge ${rankClass}">${i + 1}</span>
-                            </td>
-                            <td class="horse-number">${num}</td>
+                            <td class="rank-cell ${rankClass}">${i + 1}</td>
+                            <td class="horse-num">${num}</td>
                             <td class="horse-name">${name}</td>
-                            <td>
-                                <div>${avgScore}</div>
-                                <div class="score-bar">
-                                    <div class="score-fill" style="width: ${avgScore * 10}%"></div>
+                            <td class="score-cell">
+                                <div class="score-value">${score1}</div>
+                                <div class="score-bar-mini">
+                                    <div class="score-fill-mini fill-total" style="width: ${score1 * 10}%"></div>
                                 </div>
                             </td>
-                            <td class="probability">${prob}</td>
+                            <td class="score-cell">
+                                <div class="score-value">${score2}</div>
+                                <div class="score-bar-mini">
+                                    <div class="score-fill-mini fill-speed" style="width: ${score2 * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="score-cell">
+                                <div class="score-value">${score3}</div>
+                                <div class="score-bar-mini">
+                                    <div class="score-fill-mini fill-stable" style="width: ${score3 * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="score-cell">
+                                <div class="score-value">${score4}</div>
+                                <div class="score-bar-mini">
+                                    <div class="score-fill-mini fill-power" style="width: ${score4 * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="score-cell">
+                                <div class="score-value">${score5}</div>
+                                <div class="score-bar-mini">
+                                    <div class="score-fill-mini fill-adapt" style="width: ${score5 * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="prob-cell">${prob}</td>
                         </tr>
                     `;
                 });
 
                 html += `
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 `;
             });
