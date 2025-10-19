@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NANKAN Analytics Pro - デモサイト</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-card);
+            border-bottom: 2px solid var(--primary);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+
+        /* Admin Panel */
+        .admin-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .admin-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            box-shadow: 0 4px 12px rgba(51, 65, 85, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Status Message */
+        .status-message {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+            display: block;
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            display: block;
+        }
+
+        /* Preview Area */
+        #preview-area {
+            min-height: 400px;
+            position: relative;
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            background: var(--bg-main);
+        }
+
+        #preview-area::after {
+            content: '📋 データ確認用プレビュー（簡易表示）';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 3;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        #preview-area > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Preview Simple Table */
+        .preview-race {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .preview-race-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .preview-table th {
+            text-align: left;
+            padding: 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: var(--bg-main);
+        }
+
+        .preview-table td {
+            padding: 8px;
+            color: var(--text-primary);
+            border-top: 1px solid var(--border);
+        }
+
+
+        /* Race Card */
+        .race-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .race-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .race-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .race-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .race-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Horse Table */
+        .horse-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .horse-table thead {
+            background: var(--bg-main);
+        }
+
+        .horse-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .horse-table td {
+            padding: 15px 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .horse-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .horse-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #78350f;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            color: #1f2937;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            color: white;
+        }
+
+        .rank-other {
+            background: var(--bg-main);
+            color: var(--text-secondary);
+        }
+
+        .horse-number {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .horse-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .score-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-main);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .probability {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🏇 NANKAN Analytics Pro</h1>
+            <div class="logo-badge">Demo System</div>
+        </div>
+    </header>
+
+    <div class="container">
+            <div class="admin-panel">
+                <!-- Input Section -->
+                <div class="panel-section">
+                    <h2 class="section-title">予想データ入力</h2>
+                    <textarea id="input-data" placeholder="予想データを貼り付けてください...
+
+例：
+5R 門別 サラ系3歳
+1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
+2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
+---
+8R 盛岡 サラ系3歳以上
+1,スターライト,9.2,8.8,7.5,7.0,5.6,42%"></textarea>
+                    <div class="button-group">
+                        <button onclick="loadSampleData()">
+                            📋 サンプルデータ
+                        </button>
+                        <button onclick="clearData()" class="btn-secondary">
+                            🗑️ クリア
+                        </button>
+                    </div>
+                    <div id="input-status" class="status-message"></div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="panel-section">
+                    <h2 class="section-title">プレビュー</h2>
+                    <div id="preview-area">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-text">プレビューエリア</div>
+                            <div class="empty-subtext">左側にデータを入力すると、ここにプレビューが表示されます</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="publish-btn" onclick="publishToSite()" class="btn-success" disabled>
+                            🚀 公開サイトに反映
+                        </button>
+                        <button id="open-btn" onclick="window.open('public.html', '_blank')" class="btn-secondary" disabled>
+                            🌐 公開サイトを開く
+                        </button>
+                    </div>
+                    <div id="preview-status" class="status-message"></div>
+                </div>
+            </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/nankan-analytics-pro">GitHub</a>
+            <a href="#">ドキュメント</a>
+            <a href="#">お問い合わせ</a>
+        </div>
+        <p>&copy; 2025 NANKAN Analytics Pro. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Auto-preview on input
+        let debounceTimer;
+        document.getElementById('input-data').addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                updatePreview();
+            }, 500);
+        });
+
+        // Update Preview (Simple view for data confirmation)
+        function updatePreview() {
+            const inputData = document.getElementById('input-data').value.trim();
+            const previewArea = document.getElementById('preview-area');
+            const publishBtn = document.getElementById('publish-btn');
+
+            if (!inputData) {
+                previewArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <div class="empty-text">プレビューエリア</div>
+                        <div class="empty-subtext">左側にデータを入力すると、ここにプレビューが表示されます</div>
+                    </div>
+                `;
+                publishBtn.disabled = true;
+                return;
+            }
+
+            try {
+                const html = convertToSimplePreview(inputData);
+                previewArea.innerHTML = html;
+                publishBtn.disabled = false;
+                showStatus('input-status', 'データを読み込みました', 'success');
+            } catch (error) {
+                previewArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">エラー</div>
+                        <div class="empty-subtext">${error.message}</div>
+                    </div>
+                `;
+                publishBtn.disabled = true;
+                showStatus('input-status', 'データの形式が正しくありません', 'error');
+            }
+        }
+
+        // Convert to Simple Preview (Plain table format)
+        function convertToSimplePreview(data) {
+            const races = data.split('---').map(r => r.trim()).filter(r => r);
+            let html = '';
+
+            races.forEach((race, idx) => {
+                const lines = race.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
+
+                const header = lines[0];
+                const horses = lines.slice(1);
+
+                html += `
+                    <div class="preview-race">
+                        <div class="preview-race-title">${header}</div>
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>馬番</th>
+                                    <th>馬名</th>
+                                    <th>スコア</th>
+                                    <th>確率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                horses.forEach((horse, i) => {
+                    const parts = horse.split(',');
+                    if (parts.length < 7) return;
+
+                    const [num, name, score1, score2, score3, score4, score5, prob] = parts;
+
+                    html += `
+                        <tr>
+                            <td>${num}</td>
+                            <td>${name}</td>
+                            <td>${score1}</td>
+                            <td>${prob}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+            return html || '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">データがありません</div></div>';
+        }
+
+        // Convert data to HTML
+        function convertToHTML(data) {
+            const races = data.split('---').map(r => r.trim()).filter(r => r);
+            let html = '';
+
+            races.forEach((race, idx) => {
+                const lines = race.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
+
+                const header = lines[0];
+                const horses = lines.slice(1);
+
+                html += `
+                    <div class="race-card">
+                        <div class="race-header">
+                            <div class="race-title">${header}</div>
+                            <div class="race-meta">
+                                <div class="meta-item">
+                                    🏇 ${horses.length}頭立て
+                                </div>
+                                <div class="meta-item">
+                                    📅 ${new Date().toLocaleDateString('ja-JP')}
+                                </div>
+                            </div>
+                        </div>
+                        <table class="horse-table">
+                            <thead>
+                                <tr>
+                                    <th>順位</th>
+                                    <th>馬番</th>
+                                    <th>馬名</th>
+                                    <th>評価スコア</th>
+                                    <th>的中確率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                horses.forEach((horse, i) => {
+                    const parts = horse.split(',');
+                    if (parts.length < 7) return;
+
+                    const [num, name, score1, score2, score3, score4, score5, prob] = parts;
+                    const avgScore = ((parseFloat(score1) + parseFloat(score2) + parseFloat(score3)) / 3).toFixed(1);
+                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+
+                    html += `
+                        <tr>
+                            <td>
+                                <span class="rank-badge ${rankClass}">${i + 1}</span>
+                            </td>
+                            <td class="horse-number">${num}</td>
+                            <td class="horse-name">${name}</td>
+                            <td>
+                                <div>${avgScore}</div>
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${avgScore * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="probability">${prob}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+            return html || '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">データがありません</div></div>';
+        }
+
+        // Publish to Site
+        function publishToSite() {
+            const inputData = document.getElementById('input-data').value.trim();
+
+            // 元のデータからリッチなHTMLを生成
+            const richHTML = convertToHTML(inputData);
+
+            // LocalStorageに保存
+            localStorage.setItem('nankan-beginner-data', richHTML);
+
+            // 公開サイトを開くボタンを有効化
+            document.getElementById('open-btn').disabled = false;
+
+            showStatus('preview-status', '✅ 公開サイトに反映しました！「公開サイトを開く」ボタンで確認できます', 'success');
+        }
+
+        // Load Sample Data
+        function loadSampleData() {
+            const sampleData = `5R 門別 サラ系3歳
+1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
+2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
+3,レッドフレイム,7.9,7.5,6.8,6.0,4.9,35%
+4,グリーンフォレスト,7.2,6.8,6.2,5.8,4.5,28%
+5,ブルーオーシャン,6.8,6.5,6.0,5.5,4.2,24%
+---
+8R 盛岡 サラ系3歳以上
+1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
+2,ムーンシャドウ,8.5,8.2,7.2,6.8,5.3,39%
+3,サンライズ,8.0,7.6,7.0,6.5,5.0,36%
+4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
+5,ダスク,7.0,6.8,6.3,5.9,4.5,29%`;
+
+            document.getElementById('input-data').value = sampleData;
+            updatePreview();
+        }
+
+        // Clear Data
+        function clearData() {
+            // 入力データとプレビューをクリア
+            document.getElementById('input-data').value = '';
+            updatePreview();
+        }
+
+        // Show Status Message
+        function showStatus(elementId, message, type) {
+            const statusEl = document.getElementById(elementId);
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+
+            setTimeout(() => {
+                statusEl.className = 'status-message';
+            }, 5000);
+        }
+
+    </script>
+</body>
+</html>
