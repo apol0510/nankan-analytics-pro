@@ -1116,21 +1116,25 @@
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
 
-                    // 馬番と馬名を検出（例: "1     1     アニマルキングダム"）
+                    // 馬番と馬名を検出（例: "1     1     テルケンユミカブト     新原周（川崎）"）
                     const horseMatch = line.match(/^(\d+)\s+(\d+)\s+(.+)/);
-                    if (horseMatch && horseMatch[1] === horseMatch[2]) {
-                        if (currentHorse && horseNum && horseName) {
-                            horses.push({num: horseNum, name: horseName, stats: currentHorse});
+                    if (horseMatch) {
+                        // 枠番と馬番が一致する場合のみ（例: 1 1 ...）
+                        if (horseMatch[1] === horseMatch[2]) {
+                            if (currentHorse && horseNum && horseName) {
+                                horses.push({num: horseNum, name: horseName, stats: currentHorse});
+                            }
+                            horseNum = horseMatch[2];
+                            // 馬名は3番目の要素の最初の単語
+                            horseName = horseMatch[3].trim().split(/\s+/)[0];
+                            currentHorse = {
+                                distance: {},
+                                track: {},
+                                surface: {},
+                                recentRaces: []
+                            };
+                            continue;
                         }
-                        horseNum = horseMatch[2];
-                        horseName = horseMatch[3].split(/\s+/)[1] || horseMatch[3].split(/\s+/)[0]; // 2番目の単語（馬名）
-                        currentHorse = {
-                            distance: {},
-                            track: {},
-                            surface: {},
-                            recentRaces: []
-                        };
-                        continue;
                     }
 
                     // 距離別成績を検出（例: "大1459良ダ 6"）
@@ -1142,24 +1146,26 @@
                         }
                     }
 
-                    // 成績データを検出（例: " 0 1 0 7"）
-                    const statsMatch = line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
-                    if (statsMatch && currentHorse && !line.includes('R') && !line.includes('頭')) {
+                    // 成績データを検出（例: "全       1-     0-     0-     9"）
+                    const statsMatch = line.match(/全\s+(\d+)-\s+(\d+)-\s+(\d+)-\s+(\d+)/);
+                    if (statsMatch && currentHorse) {
                         const [_, w, p, s, r] = statsMatch;
                         const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
-                        if (total > 0) {
-                            if (!currentHorse.totalRaces) {
-                                currentHorse.totalRaces = {w, p, s, r, total};
-                                currentHorse.winRate = total > 0 ? (parseInt(w) / total * 100).toFixed(1) : 0;
-                                currentHorse.placeRate = total > 0 ? ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1) : 0;
-                            }
+                        if (total > 0 && !currentHorse.totalRaces) {
+                            currentHorse.totalRaces = {w, p, s, r, total};
+                            currentHorse.winRate = (parseInt(w) / total * 100).toFixed(1);
+                            currentHorse.placeRate = ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1);
                         }
                     }
 
-                    // 直近着順を検出（例: "9着 大井25.10.6"）
-                    const raceMatch = line.match(/^(\d+)着\s/);
+                    // 直近着順を検出（例: "9 25.10.06　良　12頭"）
+                    const raceMatch = line.match(/^(\d+)\s+\d{2}\.\d{2}\.\d{2}/);
                     if (raceMatch && currentHorse) {
-                        currentHorse.recentRaces.push(parseInt(raceMatch[1]));
+                        const rank = parseInt(raceMatch[1]);
+                        // 着順は1-18の範囲内と想定
+                        if (rank >= 1 && rank <= 18) {
+                            currentHorse.recentRaces.push(rank);
+                        }
                     }
                 }
 
