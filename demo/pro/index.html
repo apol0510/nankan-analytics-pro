@@ -634,7 +634,13 @@
                 <!-- Input Section -->
                 <div class="panel-section">
                     <h2 class="section-title">予想データ入力</h2>
-                    <textarea id="input-data" placeholder="💡 簡単入力モード対応！
+                    <textarea id="input-data" placeholder="💡 3つの入力モード対応！
+
+【🏇 南関出馬表モード】← NEW!
+1. 南関競馬の出馬表ページ全体をコピー（Ctrl+A → Ctrl+C）
+2. ここに貼り付け
+3. 「🏇 南関出馬表から自動生成」ボタンをクリック
+→ 馬番・馬名・スコア・確率を自動生成！
 
 【簡易版】馬番,馬名,スコア,確率 の4項目だけでOK
 例：1,ホワイトサンズ,9.8,45%
@@ -646,19 +652,13 @@
 【Excel/スプレッドシートから貼り付けもOK】
 タブ区切り・スペース区切りも自動変換されます
 
----レース区切り / ===買い目区切り
-
-完全な例：
-5R 門別 サラ系3歳
-1,ホワイトサンズ,9.8,45%
-2,ブラックナイト,8.2,38%
-===
-単勝:1
-馬単:1-2
-三連単:1-2-3"></textarea>
+---レース区切り / ===買い目区切り"></textarea>
                     <div class="button-group">
                         <button onclick="loadSampleData()">
                             📋 サンプルデータ
+                        </button>
+                        <button onclick="parseNankanData()" class="btn-success">
+                            🏇 南関出馬表から自動生成
                         </button>
                         <button onclick="clearData()" class="btn-secondary">
                             🗑️ クリア
@@ -1093,6 +1093,167 @@
             const converted = smartConvert(sampleData);
             document.getElementById('input-data').value = converted;
             updatePreview();
+        }
+
+        // Parse Nankan Race Card and Auto-Generate Scores
+        function parseNankanData() {
+            const rawData = document.getElementById('input-data').value;
+
+            if (!rawData.trim()) {
+                showStatus('input-status', '⚠️ 南関出馬表データを貼り付けてください', 'error');
+                return;
+            }
+
+            try {
+                // Parse horse data from complex format
+                const horses = [];
+                const lines = rawData.split('\n');
+
+                let currentHorse = null;
+                let horseNum = null;
+                let horseName = null;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+
+                    // 馬番と馬名を検出（例: "1     1     アニマルキングダム"）
+                    const horseMatch = line.match(/^(\d+)\s+(\d+)\s+(.+)/);
+                    if (horseMatch && horseMatch[1] === horseMatch[2]) {
+                        if (currentHorse && horseNum && horseName) {
+                            horses.push({num: horseNum, name: horseName, stats: currentHorse});
+                        }
+                        horseNum = horseMatch[2];
+                        horseName = horseMatch[3].split(/\s+/)[1] || horseMatch[3].split(/\s+/)[0]; // 2番目の単語（馬名）
+                        currentHorse = {
+                            distance: {},
+                            track: {},
+                            surface: {},
+                            recentRaces: []
+                        };
+                        continue;
+                    }
+
+                    // 距離別成績を検出（例: "大1459良ダ 6"）
+                    if (line.includes('ダ') && /\d{4}/.test(line)) {
+                        const distMatch = line.match(/(\d{4})/);
+                        if (distMatch && currentHorse) {
+                            const dist = distMatch[1];
+                            currentHorse.distance[dist] = line;
+                        }
+                    }
+
+                    // 成績データを検出（例: " 0 1 0 7"）
+                    const statsMatch = line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+                    if (statsMatch && currentHorse && !line.includes('R') && !line.includes('頭')) {
+                        const [_, w, p, s, r] = statsMatch;
+                        const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
+                        if (total > 0) {
+                            if (!currentHorse.totalRaces) {
+                                currentHorse.totalRaces = {w, p, s, r, total};
+                                currentHorse.winRate = total > 0 ? (parseInt(w) / total * 100).toFixed(1) : 0;
+                                currentHorse.placeRate = total > 0 ? ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1) : 0;
+                            }
+                        }
+                    }
+
+                    // 直近着順を検出（例: "9着 大井25.10.6"）
+                    const raceMatch = line.match(/^(\d+)着\s/);
+                    if (raceMatch && currentHorse) {
+                        currentHorse.recentRaces.push(parseInt(raceMatch[1]));
+                    }
+                }
+
+                // 最後の馬を追加
+                if (currentHorse && horseNum && horseName) {
+                    horses.push({num: horseNum, name: horseName, stats: currentHorse});
+                }
+
+                if (horses.length === 0) {
+                    showStatus('input-status', '⚠️ 馬データを検出できませんでした。出馬表全体をコピーしてください', 'error');
+                    return;
+                }
+
+                // Auto-calculate scores
+                const results = horses.map(horse => {
+                    const score = calculateAutoScore(horse.stats);
+                    const prob = calculateProbability(score, horses.length);
+                    return `${horse.num},${horse.name},${score},${prob}%`;
+                });
+
+                // レース名を推定（仮に「1R 大井 C3」とする）
+                const raceName = "1R 大井 C3（南関出馬表から自動生成）";
+                const output = `${raceName}\n${results.join('\n')}`;
+
+                // 自動変換して表示
+                document.getElementById('input-data').value = output;
+                const converted = smartConvert(output);
+                document.getElementById('input-data').value = converted;
+                updatePreview();
+
+                showStatus('input-status', `✅ ${horses.length}頭のデータを自動生成しました！`, 'success');
+            } catch (error) {
+                console.error('Parse error:', error);
+                showStatus('input-status', '⚠️ データ解析エラー: ' + error.message, 'error');
+            }
+        }
+
+        // Calculate Auto Score from stats
+        function calculateAutoScore(stats) {
+            let score = 7.0; // Base score
+
+            // Recent form (調子スコア)
+            if (stats.recentRaces && stats.recentRaces.length >= 3) {
+                const recent3 = stats.recentRaces.slice(0, 3);
+                const avgRank = recent3.reduce((a, b) => a + b, 0) / recent3.length;
+
+                // 平均着順が良いほど高スコア
+                if (avgRank <= 3) score += 1.5;
+                else if (avgRank <= 5) score += 1.0;
+                else if (avgRank <= 7) score += 0.5;
+                else if (avgRank >= 10) score -= 1.0;
+
+                // 上昇傾向チェック
+                if (recent3.length >= 3) {
+                    if (recent3[0] < recent3[1] && recent3[1] < recent3[2]) {
+                        score += 0.8; // 上昇傾向
+                    } else if (recent3[0] > recent3[1] && recent3[1] > recent3[2]) {
+                        score -= 0.5; // 下降傾向
+                    }
+                }
+            }
+
+            // Win rate bonus
+            if (stats.winRate) {
+                const wr = parseFloat(stats.winRate);
+                if (wr >= 20) score += 1.5;
+                else if (wr >= 10) score += 1.0;
+                else if (wr >= 5) score += 0.5;
+            }
+
+            // Place rate bonus
+            if (stats.placeRate) {
+                const pr = parseFloat(stats.placeRate);
+                if (pr >= 40) score += 1.0;
+                else if (pr >= 25) score += 0.5;
+            }
+
+            // 経験値ボーナス
+            if (stats.totalRaces && stats.totalRaces.total >= 20) {
+                score += 0.3; // ベテランボーナス
+            }
+
+            // スコアを0.1刻みに丸める
+            score = Math.max(5.0, Math.min(10.0, score)); // 5.0〜10.0の範囲
+            return score.toFixed(1);
+        }
+
+        // Calculate Probability
+        function calculateProbability(score, totalHorses) {
+            // スコアベースで確率を計算（単純化）
+            const baseProb = 100 / totalHorses;
+            const scoreFactor = parseFloat(score) / 7.5; // 7.5を基準
+            const prob = baseProb * scoreFactor;
+            return Math.max(5, Math.min(60, Math.round(prob))); // 5%〜60%
         }
 
         // Clear Data
