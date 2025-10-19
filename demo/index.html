@@ -707,14 +707,35 @@
 4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
 5,ダスク,7.0,6.8,6.3,5.9,4.5,29%`;
 
+            // サンプルデータ読み込み時は公開サイトをクリア
+            localStorage.removeItem('nankan-public-data');
+            document.getElementById('public-area').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <div class="empty-text">公開サイト</div>
+                    <div class="empty-subtext">まだ予想データが公開されていません</div>
+                </div>
+            `;
+
             document.getElementById('input-data').value = sampleData;
             updatePreview();
         }
 
         // Clear Data
         function clearData() {
+            // 入力データとプレビューをクリア
             document.getElementById('input-data').value = '';
             updatePreview();
+
+            // 公開サイトもクリア
+            localStorage.removeItem('nankan-public-data');
+            document.getElementById('public-area').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <div class="empty-text">公開サイト</div>
+                    <div class="empty-subtext">まだ予想データが公開されていません</div>
+                </div>
+            `;
         }
 
         // Show Status Message
