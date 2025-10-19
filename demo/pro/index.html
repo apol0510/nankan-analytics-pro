@@ -1109,12 +1109,12 @@
 
                 console.log(`========== データ形式を検出中 ==========`);
 
-                // 最初の10行を表示
+                // 貼り付けられたデータの最初の部分を詳細表示
                 const lines = rawData.split('\n');
                 console.log(`全${lines.length}行`);
-                console.log('最初の10行:');
-                lines.slice(0, 10).forEach((line, i) => {
-                    console.log(`行${i}: "${line.substring(0, 100)}"`);
+                console.log('========== 最初の50行を表示 ==========');
+                lines.slice(0, 50).forEach((line, i) => {
+                    console.log(`行${i}: "${line}"`);
                 });
 
                 // HTML形式かどうかチェック
