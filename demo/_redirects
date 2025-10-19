@@ -1,0 +1,11 @@
+# Netlify redirects file
+# Root shows demo selection page (index.html in demo dir)
+/   /index.html   200
+
+# Handle demo subdirectories
+/pro   /pro/index.html   200
+/pro/   /pro/index.html   200
+/beginner   /beginner/index.html   200
+/beginner/   /beginner/index.html   200
+/premium   /premium/index.html   200
+/premium/   /premium/index.html   200
