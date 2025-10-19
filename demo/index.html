@@ -721,12 +721,7 @@
             // LocalStorageに保存
             localStorage.setItem('nankan-public-data', richHTML);
 
-            showStatus('preview-status', '✅ 公開サイトに反映しました！別ウィンドウで開きます...', 'success');
-
-            // 別ウィンドウで公開サイトを開く
-            setTimeout(() => {
-                window.open('public.html', '_blank', 'width=1200,height=800');
-            }, 500);
+            showStatus('preview-status', '✅ 公開サイトに反映しました！「公開サイトを開く」ボタンで確認できます', 'success');
         }
 
         // Load Sample Data
