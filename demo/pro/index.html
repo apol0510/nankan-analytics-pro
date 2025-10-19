@@ -1116,17 +1116,28 @@
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
 
+                    // ヘッダー行をスキップ
+                    if (line.includes('枠番') || line.includes('競走馬') || line.includes('騎手・調教師')) {
+                        continue;
+                    }
+
                     // 馬番と馬名を検出（例: "1     1     テルケンユミカブト     新原周（川崎）"）
                     const horseMatch = line.match(/^(\d+)\s+(\d+)\s+(.+)/);
                     if (horseMatch) {
-                        // 枠番と馬番が一致する場合のみ（例: 1 1 ...）
-                        if (horseMatch[1] === horseMatch[2]) {
-                            if (currentHorse && horseNum && horseName) {
+                        const waku = parseInt(horseMatch[1]);
+                        const baban = parseInt(horseMatch[2]);
+
+                        // 枠番と馬番が一致、かつ1-18の範囲内
+                        if (waku === baban && waku >= 1 && waku <= 18) {
+                            // 前の馬を保存（成績データがある場合のみ）
+                            if (currentHorse && horseNum && horseName && currentHorse.totalRaces) {
                                 horses.push({num: horseNum, name: horseName, stats: currentHorse});
                             }
+
                             horseNum = horseMatch[2];
-                            // 馬名は3番目の要素の最初の単語
-                            horseName = horseMatch[3].trim().split(/\s+/)[0];
+                            // 馬名は3番目の要素の最初の単語（カタカナのみ抽出）
+                            const nameMatch = horseMatch[3].match(/([ァ-ヶー]+)/);
+                            horseName = nameMatch ? nameMatch[1] : horseMatch[3].trim().split(/\s+/)[0];
                             currentHorse = {
                                 distance: {},
                                 track: {},
@@ -1169,10 +1180,12 @@
                     }
                 }
 
-                // 最後の馬を追加
-                if (currentHorse && horseNum && horseName) {
+                // 最後の馬を追加（成績データがある場合のみ）
+                if (currentHorse && horseNum && horseName && currentHorse.totalRaces) {
                     horses.push({num: horseNum, name: horseName, stats: currentHorse});
                 }
+
+                console.log(`検出した馬: ${horses.length}頭`, horses);
 
                 if (horses.length === 0) {
                     showStatus('input-status', '⚠️ 馬データを検出できませんでした。出馬表全体をコピーしてください', 'error');
@@ -1183,6 +1196,7 @@
                 const results = horses.map(horse => {
                     const score = calculateAutoScore(horse.stats);
                     const prob = calculateProbability(score, horses.length);
+                    console.log(`${horse.num} ${horse.name}: score=${score}, prob=${prob}%`);
                     return `${horse.num},${horse.name},${score},${prob}%`;
                 });
 
@@ -1205,6 +1219,11 @@
 
         // Calculate Auto Score from stats
         function calculateAutoScore(stats) {
+            // デフォルト値チェック
+            if (!stats || typeof stats !== 'object') {
+                return 7.0;
+            }
+
             let score = 7.0; // Base score
 
             // Recent form (調子スコア)
