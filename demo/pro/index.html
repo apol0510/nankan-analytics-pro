@@ -526,6 +526,52 @@
             border-radius: 2px;
         }
 
+        /* Betting Recommendations */
+        .betting-section {
+            background: var(--bg-main);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--primary);
+        }
+
+        .betting-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .betting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .betting-item {
+            background: var(--bg-card);
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .betting-type {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .betting-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--success);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -594,9 +640,17 @@
 5R 門別 サラ系3歳
 1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
 2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
+===
+単勝:1
+馬単:1-2
+三連単:1-2-3
 ---
 8R 盛岡 サラ系3歳以上
-1,スターライト,9.2,8.8,7.5,7.0,5.6,42%"></textarea>
+1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
+===
+単勝:1
+馬単:1-2
+三連単:1-2-4"></textarea>
                     <div class="button-group">
                         <button onclick="loadSampleData()">
                             📋 サンプルデータ
@@ -745,7 +799,12 @@
             let html = '';
 
             races.forEach((race, idx) => {
-                const lines = race.split('\n').filter(l => l.trim());
+                // 買い目セクションを分離
+                const parts = race.split('===');
+                const horseData = parts[0].trim();
+                const bettingData = parts[1] ? parts[1].trim() : '';
+
+                const lines = horseData.split('\n').filter(l => l.trim());
                 if (lines.length < 2) return;
 
                 const header = lines[0];
@@ -854,6 +913,69 @@
                                 </tbody>
                             </table>
                         </div>
+                `;
+
+                // 買い目セクションを追加
+                if (bettingData) {
+                    const bettingLines = bettingData.split('\n').filter(l => l.trim());
+                    const bettings = {};
+
+                    bettingLines.forEach(line => {
+                        const [type, value] = line.split(':').map(s => s.trim());
+                        if (type && value) {
+                            bettings[type] = value;
+                        }
+                    });
+
+                    html += `
+                        <div class="betting-section">
+                            <div class="betting-title">📋 推奨買い目</div>
+                            <div class="betting-grid">
+                    `;
+
+                    if (bettings['単勝']) {
+                        html += `
+                            <div class="betting-item">
+                                <div class="betting-type">単勝</div>
+                                <div class="betting-value">${bettings['単勝']}番</div>
+                            </div>
+                        `;
+                    }
+
+                    if (bettings['馬単']) {
+                        html += `
+                            <div class="betting-item">
+                                <div class="betting-type">馬単</div>
+                                <div class="betting-value">${bettings['馬単'].replace('-', ' → ')}</div>
+                            </div>
+                        `;
+                    }
+
+                    if (bettings['三連単']) {
+                        html += `
+                            <div class="betting-item">
+                                <div class="betting-type">三連単</div>
+                                <div class="betting-value">${bettings['三連単'].replace(/-/g, ' → ')}</div>
+                            </div>
+                        `;
+                    }
+
+                    if (bettings['三連複']) {
+                        html += `
+                            <div class="betting-item">
+                                <div class="betting-type">三連複</div>
+                                <div class="betting-value">${bettings['三連複'].replace(/-/g, ' - ')}</div>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
                     </div>
                 `;
             });
@@ -885,13 +1007,22 @@
 3,レッドフレイム,7.9,7.5,6.8,6.0,4.9,35%
 4,グリーンフォレスト,7.2,6.8,6.2,5.8,4.5,28%
 5,ブルーオーシャン,6.8,6.5,6.0,5.5,4.2,24%
+===
+単勝:1
+馬単:1-2
+三連単:1-2-3
 ---
 8R 盛岡 サラ系3歳以上
 1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
 2,ムーンシャドウ,8.5,8.2,7.2,6.8,5.3,39%
 3,サンライズ,8.0,7.6,7.0,6.5,5.0,36%
 4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
-5,ダスク,7.0,6.8,6.3,5.9,4.5,29%`;
+5,ダスク,7.0,6.8,6.3,5.9,4.5,29%
+===
+単勝:1
+馬単:1-2
+三連単:1-2-4
+三連複:1-2-3`;
 
             document.getElementById('input-data').value = sampleData;
             updatePreview();
