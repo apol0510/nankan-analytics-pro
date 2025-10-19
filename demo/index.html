@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NANKAN Analytics Pro - デモ体験</title>
+    <title>NANKAN Analytics Pro - デモサイト</title>
     <style>
         * {
             margin: 0;
@@ -11,1148 +11,730 @@
             box-sizing: border-box;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        /* モード切り替えボタン */
-        .mode-switch {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        /* Header */
+        header {
+            background: var(--bg-card);
+            border-bottom: 2px solid var(--primary);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
             display: flex;
             gap: 10px;
-        }
-
-        .mode-btn {
-            padding: 12px 24px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .mode-btn.active {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: white;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-        }
-
-        .mode-btn:hover:not(.active) {
-            background: #f9fafb;
-            border-color: #2563eb;
-        }
-
-        /* ヘッダー */
-        .header {
-            background: white;
-            border: 1px solid #e5e7eb;
+            margin-bottom: 30px;
+            background: var(--bg-card);
+            padding: 10px;
             border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 24px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 12px;
+        .tab-btn {
+            flex: 1;
+            padding: 15px 30px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .header p {
-            color: #6b7280;
-            font-size: 15px;
-            line-height: 1.6;
+        .tab-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
         }
 
-        /* 管理画面スタイル */
-        .admin-view {
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
             display: none;
         }
 
-        .admin-view.active {
+        .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
-        .main-content {
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Admin Panel */
+        .admin-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            margin-bottom: 30px;
         }
 
         @media (max-width: 1024px) {
-            .main-content {
+            .admin-panel {
                 grid-template-columns: 1fr;
             }
-
-            .mode-switch {
-                flex-direction: column;
-                top: 10px;
-                right: 10px;
-            }
-
-            .header h1 {
-                font-size: 28px;
-            }
         }
 
-        .card {
-            background: white;
-            border: 1px solid #e5e7eb;
+        .panel-section {
+            background: var(--bg-card);
             border-radius: 12px;
-            padding: 28px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
-        .card h2 {
+        .section-title {
             font-size: 20px;
-            margin-bottom: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #1f2937;
-            font-weight: 600;
+            gap: 10px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
         }
 
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #475569;
-            font-size: 15px;
-        }
-
-        .form-group textarea {
+        textarea {
             width: 100%;
-            min-height: 400px;
-            padding: 16px;
-            background: #fafafa;
-            border: 1px solid #d1d5db;
+            min-height: 300px;
+            padding: 15px;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
             border-radius: 8px;
-            color: #333;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            resize: vertical;
-            transition: all 0.2s ease;
-        }
-
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            background: white;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px 24px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
             font-size: 14px;
-            font-weight: 600;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
             border: none;
             border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-primary {
-            background: #2563eb;
-            color: white;
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
 
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-success {
-            background: #16a34a;
-            color: white;
-        }
-
-        .btn-success:not(:disabled):hover {
-            background: #15803d;
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .btn-secondary {
-            background: #e5e7eb;
-            color: #374151;
-            border: 1px solid #d1d5db;
+            background: var(--bg-card-hover);
         }
 
         .btn-secondary:hover {
-            background: #d1d5db;
+            background: var(--border);
+            box-shadow: 0 4px 12px rgba(51, 65, 85, 0.4);
         }
 
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            pointer-events: none;
+        .btn-success {
+            background: var(--success);
         }
 
-        .btn:not(:disabled) {
-            opacity: 1;
-            cursor: pointer;
-            pointer-events: auto;
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
 
-        .sample-btn {
-            background: #8b5cf6;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .sample-btn:hover {
-            background: #7c3aed;
-        }
-
-        #preview {
-            background: #fafafa;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 20px;
-            min-height: 400px;
-            overflow-y: auto;
-            max-height: 600px;
-        }
-
-        #preview.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            font-size: 14px;
-        }
-
+        /* Status Message */
         .status-message {
-            padding: 10px 16px;
-            border-radius: 6px;
-            margin-top: 16px;
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
             display: none;
-            font-weight: 500;
-            font-size: 13px;
-            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .status-message.success {
-            background: #d1fae5;
-            border: 1px solid #10b981;
-            color: #047857;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
             display: block;
         }
 
         .status-message.error {
-            background: #fee2e2;
-            border: 1px solid #ef4444;
-            color: #dc2626;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
             display: block;
         }
 
-        /* 公開サイトスタイル */
-        .public-view {
-            display: none;
+        /* Preview Area */
+        #preview-area {
+            min-height: 400px;
         }
 
-        .public-view.active {
-            display: block;
-        }
-
-        .site-header {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 24px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .site-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 12px;
-        }
-
-        .site-header .subtitle {
-            color: #6b7280;
-            font-size: 16px;
-            margin-bottom: 24px;
-        }
-
-        .site-header .stats {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px 24px;
-            min-width: 120px;
-        }
-
-        .stat-item .label {
-            color: #6b7280;
-            font-size: 12px;
-            margin-bottom: 6px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-item .value {
-            color: #2563eb;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
+        /* Race Card */
         .race-card {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--bg-card);
             border-radius: 12px;
-            padding: 28px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .race-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow);
         }
 
         .race-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
         }
 
-        .race-header h2 {
+        .race-title {
             font-size: 22px;
-            color: #1f2937;
             font-weight: 700;
+            color: var(--text-primary);
         }
 
-        .race-header .race-info {
-            color: #6b7280;
-            font-size: 13px;
-            font-weight: 500;
+        .race-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: var(--text-secondary);
         }
 
-        .horse-section {
-            margin-bottom: 35px;
-        }
-
-        .horse-card {
-            background: #fafafa;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 14px;
-            border-left: 4px solid #2563eb;
-            transition: all 0.2s ease;
-        }
-
-        .horse-card:hover {
-            background: #f3f4f6;
-            border-left-color: #1d4ed8;
-        }
-
-        .horse-card.main {
-            border-left-color: #f59e0b;
-            background: #fffbeb;
-        }
-
-        .horse-card.sub {
-            border-left-color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .horse-header {
+        .meta-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 5px;
         }
 
-        .horse-mark {
-            font-size: 24px;
+        /* Horse Table */
+        .horse-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .horse-table thead {
+            background: var(--bg-main);
+        }
+
+        .horse-table th {
+            padding: 12px;
+            text-align: left;
             font-weight: 700;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .horse-table td {
+            padding: 15px 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .horse-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .horse-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #78350f;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            color: #1f2937;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            color: white;
+        }
+
+        .rank-other {
+            background: var(--bg-main);
+            color: var(--text-secondary);
         }
 
         .horse-number {
-            font-size: 20px;
             font-weight: 700;
-            color: #2563eb;
+            color: var(--text-primary);
+            font-size: 16px;
         }
 
         .horse-name {
-            font-size: 18px;
             font-weight: 600;
-            color: #1f2937;
+            color: var(--text-primary);
         }
 
-        .horse-type {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: auto;
-            border: 1px solid #c7d2fe;
-        }
-
-        .importance-bars {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .importance-bars {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .importance-item {
-            background: white;
-            border-radius: 6px;
-            padding: 10px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .importance-label {
-            font-size: 11px;
-            color: #6b7280;
-            margin-bottom: 4px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .importance-bar {
+        .score-bar {
+            width: 100%;
             height: 8px;
-            background: #e5e7eb;
+            background: var(--bg-main);
             border-radius: 4px;
             overflow: hidden;
+            margin-top: 5px;
         }
 
-        .importance-fill {
+        .score-fill {
             height: 100%;
-            background: #2563eb;
+            background: linear-gradient(90deg, var(--primary), var(--success));
             border-radius: 4px;
-            transition: width 0.6s ease;
+            transition: width 0.5s ease;
         }
 
-        .importance-value {
-            font-size: 13px;
-            color: #2563eb;
+        .probability {
+            font-size: 18px;
             font-weight: 700;
-            margin-top: 4px;
+            color: var(--success);
         }
 
-        .strategy-section {
-            margin-top: 24px;
-        }
-
-        .strategy-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 14px;
-            padding: 12px 16px;
-            background: #f3f4f6;
-            border-left: 4px solid #2563eb;
-            border-radius: 6px;
-            color: #374151;
-        }
-
-        .bet-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        .bet-item {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #e5e7eb;
-        }
-
-        .bet-numbers {
-            color: #1f2937;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .bet-points {
-            color: #f59e0b;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .ai-prediction {
-            background: #dbeafe;
-            border: 1px solid #3b82f6;
-            border-radius: 6px;
-            padding: 12px;
-            text-align: center;
-            color: #1e40af;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
+            color: var(--text-secondary);
         }
 
-        .empty-state .icon {
-            font-size: 56px;
-            margin-bottom: 16px;
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
             opacity: 0.5;
         }
 
-        .empty-state h3 {
-            font-size: 20px;
-            color: #6b7280;
-            margin-bottom: 8px;
-            font-weight: 600;
+        .empty-text {
+            font-size: 18px;
+            margin-bottom: 10px;
         }
 
-        .empty-state p {
-            color: #9ca3af;
+        .empty-subtext {
             font-size: 14px;
         }
 
-        .race-card h3 {
-            font-size: 18px;
-            margin-bottom: 14px;
-            color: #1f2937;
-            font-weight: 600;
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
         }
 
-        .horse-item {
-            padding: 12px;
-            background: #fafafa;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border-left: 3px solid #2563eb;
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
         }
 
-        .horse-item .mark {
-            display: inline-block;
-            width: 28px;
-            font-weight: 700;
-            color: #f59e0b;
-            font-size: 16px;
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
 
-        .horse-item .name {
-            font-weight: 600;
-            color: #1f2937;
+        .footer-links a:hover {
+            color: var(--primary);
         }
     </style>
 </head>
 <body>
-    <!-- モード切り替えボタン -->
-    <div class="mode-switch">
-        <button class="mode-btn active" onclick="switchMode('admin')">⚙️ 管理画面</button>
-        <button class="mode-btn" onclick="switchMode('public')">🌐 公開サイト</button>
-    </div>
+    <header>
+        <div class="header-content">
+            <h1>🏇 NANKAN Analytics Pro</h1>
+            <div class="logo-badge">Demo System</div>
+        </div>
+    </header>
 
     <div class="container">
-        <!-- 管理画面 -->
-        <div class="admin-view active">
-            <div class="header">
-                <h1>🏇 NANKAN Analytics Pro - デモ管理画面</h1>
-                <p>予想データを貼り付けて、ボタン1つで公開！ブラウザだけで完結する予想サイト運営</p>
-            </div>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('admin')">
+                ⚙️ 管理画面
+            </button>
+            <button class="tab-btn" onclick="switchTab('public')">
+                🌐 公開サイト
+            </button>
+        </div>
 
-            <div class="main-content">
-                <!-- 左側: 入力エリア -->
-                <div class="card">
-                    <h2>
-                        <span>✏️</span>
-                        予想データ入力
-                    </h2>
+        <!-- Admin Tab -->
+        <div id="admin-tab" class="tab-content active">
+            <div class="admin-panel">
+                <!-- Input Section -->
+                <div class="panel-section">
+                    <h2 class="section-title">予想データ入力</h2>
+                    <textarea id="input-data" placeholder="予想データを貼り付けてください...
 
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-                        <button class="sample-btn" onclick="loadSampleData()" style="margin-bottom: 0;">
-                            📋 サンプルデータで試す
-                        </button>
-                        <div id="status" class="status-message" style="margin-top: 0; flex: 1;"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="prediction-input">
-                            予想テキストを貼り付けてください（自動でプレビューに変換されます）
-                        </label>
-                        <textarea id="prediction-input" oninput="autoConvert()" placeholder="大井5R 1800m（12頭）発走時刻16:45 3歳以上オープン
-◎8 サンライズグローリー 本命
-○3 ミッドナイトキング 対抗
-▲11 ダイヤモンドスター 単穴
-
-馬単 8 → 3,11　2点
-的中確率64%
-
+例：
+5R 門別 サラ系3歳
+1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
+2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
 ---
-
-大井8R 1600m（14頭）発走時刻18:20 3歳以上A1
-◎12 スターリットスカイ 本命
-○5 ゴールデンフューチャー 対抗
-▲7 ブライトパスウェイ 単穴
-△ 連下候補馬
-10 ノーブルドリーム (76pt)
-
-馬単 5,7 → 12　2点
-馬単 12 ⇔ 10　2点
-的中確率71%"></textarea>
-                    </div>
-
-                    <div class="btn-group">
-                        <button class="btn btn-secondary" onclick="clearInput()">
-                            <span>🗑️</span>
-                            クリア
+8R 盛岡 サラ系3歳以上
+1,スターライト,9.2,8.8,7.5,7.0,5.6,42%"></textarea>
+                    <div class="button-group">
+                        <button onclick="loadSampleData()">
+                            📋 サンプルデータ
+                        </button>
+                        <button onclick="clearData()" class="btn-secondary">
+                            🗑️ クリア
                         </button>
                     </div>
+                    <div id="input-status" class="status-message"></div>
                 </div>
 
-                <!-- 右側: プレビューエリア -->
-                <div class="card">
-                    <h2>
-                        <span>👀</span>
-                        プレビュー
-                    </h2>
-                    <div id="preview" class="empty">
-                        ← 左側のテキストエリアに予想データを入力して「変換してプレビュー」ボタンを押してください
+                <!-- Preview Section -->
+                <div class="panel-section">
+                    <h2 class="section-title">プレビュー</h2>
+                    <div id="preview-area">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-text">プレビューエリア</div>
+                            <div class="empty-subtext">左側にデータを入力すると、ここにプレビューが表示されます</div>
+                        </div>
                     </div>
-
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="publishPrediction()" id="publish-btn" disabled>
-                            <span>🚀</span>
-                            公開サイトに反映
+                    <div class="button-group">
+                        <button id="publish-btn" onclick="publishToSite()" class="btn-success" disabled>
+                            🚀 公開サイトに反映
                         </button>
                     </div>
-
-                    <div id="publish-status" class="status-message"></div>
+                    <div id="preview-status" class="status-message"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 公開サイト -->
-        <div class="public-view">
-            <div class="site-header">
-                <h1>🏇 競馬予想サイト（デモ）</h1>
-                <p class="subtitle">AI・機械学習による高精度予想</p>
-                <div class="stats">
-                    <div class="stat-item">
-                        <div class="label">的中率</div>
-                        <div class="value">76%</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="label">平均配当</div>
-                        <div class="value">¥315,820</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="label">期待リターン</div>
-                        <div class="value">278%</div>
-                    </div>
+        <!-- Public Tab -->
+        <div id="public-tab" class="tab-content">
+            <div id="public-area">
+                <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <div class="empty-text">公開サイト</div>
+                    <div class="empty-subtext">まだ予想データが公開されていません</div>
                 </div>
             </div>
-
-            <div id="content"></div>
         </div>
     </div>
 
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/nankan-analytics-pro">GitHub</a>
+            <a href="#">ドキュメント</a>
+            <a href="#">お問い合わせ</a>
+        </div>
+        <p>&copy; 2025 NANKAN Analytics Pro. All rights reserved.</p>
+    </footer>
+
     <script>
-        let currentPreviewData = null;
-        let currentMode = 'admin';
-        let autoConvertTimer = null;
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        // 自動変換（入力後1秒待ってから変換）
-        function autoConvert() {
-            clearTimeout(autoConvertTimer);
-            autoConvertTimer = setTimeout(() => {
-                const input = document.getElementById('prediction-input').value.trim();
-                if (input) {
-                    convertPrediction();
-                }
-            }, 1000);
-        }
-
-        // モード切り替え
-        function switchMode(mode) {
-            currentMode = mode;
-
-            const buttons = document.querySelectorAll('.mode-btn');
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            if (mode === 'admin') {
-                buttons[0].classList.add('active');
-                document.querySelector('.admin-view').classList.add('active');
-                document.querySelector('.public-view').classList.remove('active');
+            if (tab === 'admin') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('admin-tab').classList.add('active');
             } else {
-                buttons[1].classList.add('active');
-                document.querySelector('.admin-view').classList.remove('active');
-                document.querySelector('.public-view').classList.add('active');
-                loadPrediction();
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('public-tab').classList.add('active');
             }
         }
 
-        // サンプルデータ読み込み
-        function loadSampleData() {
-            const sampleData = `大井5R 1800m（12頭）発走時刻16:45 3歳以上オープン
-◎8 サンライズグローリー 本命
-総合評価:★★★★
-評価点数: 92pt
-注目ポイント
-調子の良さ96%
-地力88%
-レース向き85%
-
-○3 ミッドナイトキング 対抗
-総合評価:★★★
-評価点数: 87pt
-注目ポイント
-調子の良さ84%
-地力93%
-レース向き80%
-
-▲11 ダイヤモンドスター 単穴
-総合評価:★★★
-評価点数: 84pt
-
-馬単 8 → 3,11　2点
-的中確率64%
-
----
-
-大井8R 1600m（14頭）発走時刻18:20 3歳以上A1
-◎12 スターリットスカイ 本命
-総合評価:★★★★
-評価点数: 90pt
-注目ポイント
-調子の良さ92%
-地力89%
-レース向き87%
-
-○5 ゴールデンフューチャー 対抗
-総合評価:★★★
-評価点数: 85pt
-注目ポイント
-調子の良さ88%
-地力91%
-レース向き83%
-
-▲7 ブライトパスウェイ 単穴
-総合評価:★★★
-評価点数: 82pt
-
-▲3 シャイニングホープ 単穴
-総合評価:★★★
-評価点数: 79pt
-
-△ 連下候補馬
-10 ノーブルドリーム (76pt)
-14 クリスタルムーン (74pt)
-8 サファイアウェーブ (72pt)
-
-馬単 5,7,3 → 12　3点
-馬単 12 ⇔ 10,14,8　6点
-馬単 5 ⇔ 7,3　4点
-的中確率71%`;
-
-            document.getElementById('prediction-input').value = sampleData;
-
-            // 自動的に変換してプレビュー表示
-            showStatus('🔄 変換中...', 'success');
-            setTimeout(() => {
-                convertPrediction();
-                showStatus('✅ 変換完了！', 'success');
-            }, 300);
-        }
-
-        // 予想データ変換
-        function convertPrediction() {
-            const input = document.getElementById('prediction-input').value.trim();
-
-            if (!input) {
-                showStatus('予想データを入力してください', 'error');
-                return;
-            }
-
-            // ---で複数レースを区切る
-            const races = input.split('---').map(r => r.trim()).filter(r => r);
-            const preview = document.getElementById('preview');
-            preview.classList.remove('empty');
-
-            let html = '';
-
-            races.forEach((race, raceIndex) => {
-                const lines = race.split('\n');
-                let horses = [];
-                let currentHorse = null;
-                let raceTitle = lines[0];
-
-                // データをパース
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-
-                    if (line.match(/^[◎○▲△]/)) {
-                        if (currentHorse) {
-                            horses.push(currentHorse);
-                        }
-                        const parts = line.split(' ');
-                        currentHorse = {
-                            mark: parts[0],
-                            number: parts[1],
-                            name: parts[2],
-                            type: parts[3] || '',
-                            stats: {}
-                        };
-                    } else if (currentHorse) {
-                        if (line.includes('調子の良さ')) {
-                            currentHorse.stats.condition = line.match(/(\d+)%/)?.[1] || '0';
-                        } else if (line.includes('地力')) {
-                            currentHorse.stats.ability = line.match(/(\d+)%/)?.[1] || '0';
-                        } else if (line.includes('レース向き')) {
-                            currentHorse.stats.suitability = line.match(/(\d+)%/)?.[1] || '0';
-                        }
-                    }
-                }
-                if (currentHorse) {
-                    horses.push(currentHorse);
-                }
-
-                // HTMLを生成（公開サイトと同じデザイン）
-                html += `
-                <div class="race-card" style="margin-bottom: 25px;">
-                    <div class="race-header">
-                        <h2 style="font-size: 24px;">${raceTitle}</h2>
-                    </div>
-                    <div class="horse-section">
-                        ${horses.map((horse, index) => `
-                            <div class="horse-card ${index === 0 ? 'main' : index === 1 ? 'sub' : ''}">
-                                <div class="horse-header">
-                                    <span class="horse-mark">${horse.mark}</span>
-                                    <span class="horse-number">${horse.number}</span>
-                                    <span class="horse-name">${horse.name}</span>
-                                    <span class="horse-type">${horse.type}</span>
-                                </div>
-                                ${horse.stats.condition ? `
-                                    <div class="importance-bars">
-                                        <div class="importance-item">
-                                            <div class="importance-label">調子の良さ</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${horse.stats.condition}%"></div>
-                                            </div>
-                                            <div class="importance-value">${horse.stats.condition}%</div>
-                                        </div>
-                                        <div class="importance-item">
-                                            <div class="importance-label">地力</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${horse.stats.ability}%"></div>
-                                            </div>
-                                            <div class="importance-value">${horse.stats.ability}%</div>
-                                        </div>
-                                        <div class="importance-item">
-                                            <div class="importance-label">レース向き</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${horse.stats.suitability}%"></div>
-                                            </div>
-                                            <div class="importance-value">${horse.stats.suitability}%</div>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`;
-            });
-
-            preview.innerHTML = html;
-
-            currentPreviewData = input;
-            const publishBtn = document.getElementById('publish-btn');
-            publishBtn.disabled = false;
-        }
-
-        // 公開処理
-        function publishPrediction() {
-
-            if (!currentPreviewData) {
-                showPublishStatus('先に予想データを変換してください', 'error');
-                return;
-            }
-
-            // ボタンを一時的に無効化
-            const publishBtn = document.getElementById('publish-btn');
-            publishBtn.disabled = true;
-            publishBtn.textContent = '✅ 反映中...';
-
-            localStorage.setItem('nankan-pro-demo-prediction', currentPreviewData);
-
-            // 成功メッセージを表示
-            setTimeout(() => {
-                publishBtn.innerHTML = '<span>✅</span> 公開完了！';
-                showPublishStatus('✅ 公開サイトに反映しました！上部の「🌐 公開サイト」ボタンから確認できます', 'success');
-
-                // 2秒後にボタンを元に戻す
-                setTimeout(() => {
-                    publishBtn.disabled = false;
-                    publishBtn.innerHTML = '<span>🚀</span> 公開サイトに反映';
-                }, 2000);
+        // Auto-preview on input
+        let debounceTimer;
+        document.getElementById('input-data').addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                updatePreview();
             }, 500);
-        }
+        });
 
-        // クリア
-        function clearInput() {
-            document.getElementById('prediction-input').value = '';
-            document.getElementById('preview').innerHTML = '← 左側のテキストエリアに予想データを入力して「変換してプレビュー」ボタンを押してください';
-            document.getElementById('preview').classList.add('empty');
-            document.getElementById('publish-btn').disabled = true;
-            currentPreviewData = null;
-        }
+        // Update Preview
+        function updatePreview() {
+            const inputData = document.getElementById('input-data').value.trim();
+            const previewArea = document.getElementById('preview-area');
+            const publishBtn = document.getElementById('publish-btn');
 
-        // ステータス表示（左側の入力エリア用）
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status-message ${type}`;
-            status.style.display = 'block';
-
-            if (type === 'success') {
-                setTimeout(() => {
-                    status.style.opacity = '0';
-                    status.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => {
-                        status.style.display = 'none';
-                        status.style.opacity = '1';
-                    }, 500);
-                }, 8000);
-            }
-        }
-
-        // ステータス表示（右側の公開ボタン用）
-        function showPublishStatus(message, type) {
-            const status = document.getElementById('publish-status');
-            status.textContent = message;
-            status.className = `status-message ${type}`;
-            status.style.display = 'block';
-
-            if (type === 'success') {
-                setTimeout(() => {
-                    status.style.opacity = '0';
-                    status.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => {
-                        status.style.display = 'none';
-                        status.style.opacity = '1';
-                    }, 500);
-                }, 8000);
-            }
-        }
-
-        // 公開サイト - データ読み込み
-        function loadPrediction() {
-            const data = localStorage.getItem('nankan-pro-demo-prediction');
-            const content = document.getElementById('content');
-
-            if (!data) {
-                content.innerHTML = `
+            if (!inputData) {
+                previewArea.innerHTML = `
                     <div class="empty-state">
-                        <div class="icon">📋</div>
-                        <h3>予想データがまだ公開されていません</h3>
-                        <p>管理画面から予想データを入力・公開してください</p>
+                        <div class="empty-icon">📊</div>
+                        <div class="empty-text">プレビューエリア</div>
+                        <div class="empty-subtext">左側にデータを入力すると、ここにプレビューが表示されます</div>
                     </div>
                 `;
+                publishBtn.disabled = true;
                 return;
             }
 
-            // ---で複数レースを区切る
+            try {
+                const html = convertToHTML(inputData);
+                previewArea.innerHTML = html;
+                publishBtn.disabled = false;
+                showStatus('input-status', 'データを読み込みました', 'success');
+            } catch (error) {
+                previewArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">エラー</div>
+                        <div class="empty-subtext">${error.message}</div>
+                    </div>
+                `;
+                publishBtn.disabled = true;
+                showStatus('input-status', 'データの形式が正しくありません', 'error');
+            }
+        }
+
+        // Convert data to HTML
+        function convertToHTML(data) {
             const races = data.split('---').map(r => r.trim()).filter(r => r);
             let html = '';
 
-            races.forEach((raceData, raceIndex) => {
-                const lines = raceData.split('\n');
-                let currentRace = '';
-                let horses = [];
-                let strategies = [];
-                let currentStrategy = null;
+            races.forEach((race, idx) => {
+                const lines = race.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
 
-                for (let line of lines) {
-                    line = line.trim();
-                    if (!line) continue;
-
-                    if (line.match(/^\w+\d+R/)) {
-                        currentRace = line;
-                    } else if (line.match(/^[◎○▲△]/)) {
-                        const parts = line.split(' ');
-                        horses.push({
-                            mark: parts[0],
-                            number: parts[1],
-                            name: parts[2],
-                            type: parts[3] || ''
-                        });
-                    } else if (line.includes('モデル')) {
-                        if (currentStrategy) {
-                            strategies.push(currentStrategy);
-                        }
-                        currentStrategy = {
-                            title: line,
-                            bets: [],
-                            prediction: ''
-                        };
-                    } else if (line.includes('馬単') && currentStrategy) {
-                        currentStrategy.bets.push(line);
-                    } else if ((line.includes('的中確率') || line.includes('AI予測')) && currentStrategy) {
-                        currentStrategy.prediction = line;
-                    }
-                }
-
-                if (currentStrategy) {
-                    strategies.push(currentStrategy);
-                }
+                const header = lines[0];
+                const horses = lines.slice(1);
 
                 html += `
-                <div class="race-card">
-                    <div class="race-header">
-                        <h2>${currentRace}</h2>
-                        <div class="race-info">
-                            ${new Date().toLocaleDateString('ja-JP')} 発走予定
-                        </div>
-                    </div>
-
-                    <div class="horse-section">
-                        ${horses.map((horse, index) => `
-                            <div class="horse-card ${index === 0 ? 'main' : index === 1 ? 'sub' : ''}">
-                                <div class="horse-header">
-                                    <span class="horse-mark">${horse.mark}</span>
-                                    <span class="horse-number">${horse.number}</span>
-                                    <span class="horse-name">${horse.name}</span>
-                                    <span class="horse-type">${horse.type}</span>
+                    <div class="race-card">
+                        <div class="race-header">
+                            <div class="race-title">${header}</div>
+                            <div class="race-meta">
+                                <div class="meta-item">
+                                    🏇 ${horses.length}頭立て
                                 </div>
-                                ${index < 2 ? `
-                                    <div class="importance-bars">
-                                        <div class="importance-item">
-                                            <div class="importance-label">調子の良さ</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${index === 0 ? '96' : '84'}%"></div>
-                                            </div>
-                                            <div class="importance-value">${index === 0 ? '96' : '84'}%</div>
-                                        </div>
-                                        <div class="importance-item">
-                                            <div class="importance-label">地力</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${index === 0 ? '88' : '93'}%"></div>
-                                            </div>
-                                            <div class="importance-value">${index === 0 ? '88' : '93'}%</div>
-                                        </div>
-                                        <div class="importance-item">
-                                            <div class="importance-label">レース向き</div>
-                                            <div class="importance-bar">
-                                                <div class="importance-fill" style="width: ${index === 0 ? '85' : '80'}%"></div>
-                                            </div>
-                                            <div class="importance-value">${index === 0 ? '85' : '80'}%</div>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    ${strategies.map(strategy => `
-                        <div class="strategy-section">
-                            <div class="strategy-title">${strategy.title}</div>
-                            <div class="bet-list">
-                                ${strategy.bets.map(bet => {
-                                    const match = bet.match(/(.+)　(\d+)点/);
-                                    return `
-                                        <div class="bet-item">
-                                            <span class="bet-numbers">${match ? match[1] : bet}</span>
-                                            <span class="bet-points">${match ? match[2] : ''}点</span>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                            <div class="ai-prediction">
-                                ${strategy.prediction}
+                                <div class="meta-item">
+                                    📅 ${new Date().toLocaleDateString('ja-JP')}
+                                </div>
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                        <table class="horse-table">
+                            <thead>
+                                <tr>
+                                    <th>順位</th>
+                                    <th>馬番</th>
+                                    <th>馬名</th>
+                                    <th>評価スコア</th>
+                                    <th>的中確率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                horses.forEach((horse, i) => {
+                    const parts = horse.split(',');
+                    if (parts.length < 7) return;
+
+                    const [num, name, score1, score2, score3, score4, score5, prob] = parts;
+                    const avgScore = ((parseFloat(score1) + parseFloat(score2) + parseFloat(score3)) / 3).toFixed(1);
+                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+
+                    html += `
+                        <tr>
+                            <td>
+                                <span class="rank-badge ${rankClass}">${i + 1}</span>
+                            </td>
+                            <td class="horse-number">${num}</td>
+                            <td class="horse-name">${name}</td>
+                            <td>
+                                <div>${avgScore}</div>
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${avgScore * 10}%"></div>
+                                </div>
+                            </td>
+                            <td class="probability">${prob}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
             });
 
-            content.innerHTML = html;
+            return html || '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">データがありません</div></div>';
+        }
+
+        // Publish to Site
+        function publishToSite() {
+            const previewHTML = document.getElementById('preview-area').innerHTML;
+            document.getElementById('public-area').innerHTML = previewHTML;
+
+            localStorage.setItem('nankan-public-data', previewHTML);
+
+            showStatus('preview-status', '✅ 公開サイトに反映しました！', 'success');
 
             setTimeout(() => {
-                document.querySelectorAll('.importance-fill').forEach(el => {
-                    const width = el.style.width;
-                    el.style.width = '0';
-                    setTimeout(() => {
-                        el.style.width = width;
-                    }, 100);
-                });
-            }, 100);
+                switchTab('public');
+            }, 1000);
         }
+
+        // Load Sample Data
+        function loadSampleData() {
+            const sampleData = `5R 門別 サラ系3歳
+1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
+2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
+3,レッドフレイム,7.9,7.5,6.8,6.0,4.9,35%
+4,グリーンフォレスト,7.2,6.8,6.2,5.8,4.5,28%
+5,ブルーオーシャン,6.8,6.5,6.0,5.5,4.2,24%
+---
+8R 盛岡 サラ系3歳以上
+1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
+2,ムーンシャドウ,8.5,8.2,7.2,6.8,5.3,39%
+3,サンライズ,8.0,7.6,7.0,6.5,5.0,36%
+4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
+5,ダスク,7.0,6.8,6.3,5.9,4.5,29%`;
+
+            document.getElementById('input-data').value = sampleData;
+            updatePreview();
+        }
+
+        // Clear Data
+        function clearData() {
+            document.getElementById('input-data').value = '';
+            updatePreview();
+        }
+
+        // Show Status Message
+        function showStatus(elementId, message, type) {
+            const statusEl = document.getElementById(elementId);
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+
+            setTimeout(() => {
+                statusEl.className = 'status-message';
+            }, 5000);
+        }
+
+        // Load published data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const publishedData = localStorage.getItem('nankan-public-data');
+            if (publishedData) {
+                document.getElementById('public-area').innerHTML = publishedData;
+            }
+        });
     </script>
 </body>
 </html>
