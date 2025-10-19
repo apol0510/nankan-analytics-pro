@@ -519,7 +519,7 @@
                         <button id="publish-btn" onclick="publishToSite()" class="btn-success" disabled>
                             🚀 公開サイトに反映
                         </button>
-                        <button onclick="window.open('public.html', '_blank', 'width=1200,height=800')" class="btn-secondary">
+                        <button id="open-btn" onclick="window.open('public.html', '_blank', 'width=1200,height=800')" class="btn-secondary" disabled>
                             🌐 公開サイトを開く
                         </button>
                     </div>
@@ -538,6 +538,13 @@
     </footer>
 
     <script>
+        // Check if published data exists on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const publishedData = localStorage.getItem('nankan-public-data');
+            if (publishedData) {
+                document.getElementById('open-btn').disabled = false;
+            }
+        });
 
         // Auto-preview on input
         let debounceTimer;
@@ -720,6 +727,9 @@
 
             // LocalStorageに保存
             localStorage.setItem('nankan-public-data', richHTML);
+
+            // 公開サイトを開くボタンを有効化
+            document.getElementById('open-btn').disabled = false;
 
             showStatus('preview-status', '✅ 公開サイトに反映しました！「公開サイトを開く」ボタンで確認できます', 'success');
         }
