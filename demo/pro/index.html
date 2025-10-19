@@ -1135,9 +1135,9 @@
                     // カンマ区切りで分割
                     const cols = line.split(',').map(col => col.trim());
 
-                    // デバッグ: 最初の5行を表示
-                    if (i - headerIndex <= 5) {
-                        console.log(`データ行${i}: ${cols.length}列 →`, cols.slice(0, 6));
+                    // デバッグ: 最初の20行を詳細表示
+                    if (i - headerIndex <= 20) {
+                        console.log(`行${i}: ${cols.length}列 → [${cols.slice(0, 10).join('] [') || '空'}]`);
                     }
 
                     // 馬番と馬名を抽出 (推測: 列0=枠番, 列1=馬番, 列3=馬名あたり)
