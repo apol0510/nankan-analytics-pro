@@ -538,14 +538,6 @@
     </footer>
 
     <script>
-        // Check if published data exists on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const publishedData = localStorage.getItem('nankan-public-data');
-            if (publishedData) {
-                document.getElementById('open-btn').disabled = false;
-            }
-        });
-
         // Auto-preview on input
         let debounceTimer;
         document.getElementById('input-data').addEventListener('input', function() {
