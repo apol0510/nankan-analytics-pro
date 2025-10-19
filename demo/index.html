@@ -74,55 +74,6 @@
             letter-spacing: 1px;
         }
 
-        /* Tab Navigation */
-        .tab-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: var(--bg-card);
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 15px 30px;
-            background: transparent;
-            color: var(--text-secondary);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn:hover {
-            background: var(--bg-card-hover);
-            color: var(--text-primary);
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
         /* Admin Panel */
         .admin-panel {
@@ -265,7 +216,71 @@
         /* Preview Area */
         #preview-area {
             min-height: 400px;
+            position: relative;
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            background: var(--bg-main);
         }
+
+        #preview-area::after {
+            content: '📋 データ確認用プレビュー（簡易表示）';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 3;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        #preview-area > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Preview Simple Table */
+        .preview-race {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .preview-race-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .preview-table th {
+            text-align: left;
+            padding: 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: var(--bg-main);
+        }
+
+        .preview-table td {
+            padding: 8px;
+            color: var(--text-primary);
+            border-top: 1px solid var(--border);
+        }
+
 
         /* Race Card */
         .race-card {
@@ -466,18 +481,6 @@
     </header>
 
     <div class="container">
-        <!-- Tab Navigation -->
-        <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('admin')">
-                ⚙️ 管理画面
-            </button>
-            <button class="tab-btn" onclick="switchTab('public')">
-                🌐 公開サイト
-            </button>
-        </div>
-
-        <!-- Admin Tab -->
-        <div id="admin-tab" class="tab-content active">
             <div class="admin-panel">
                 <!-- Input Section -->
                 <div class="panel-section">
@@ -516,22 +519,13 @@
                         <button id="publish-btn" onclick="publishToSite()" class="btn-success" disabled>
                             🚀 公開サイトに反映
                         </button>
+                        <button onclick="window.open('public.html', '_blank', 'width=1200,height=800')" class="btn-secondary">
+                            🌐 公開サイトを開く
+                        </button>
                     </div>
                     <div id="preview-status" class="status-message"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Public Tab -->
-        <div id="public-tab" class="tab-content">
-            <div id="public-area">
-                <div class="empty-state">
-                    <div class="empty-icon">🌐</div>
-                    <div class="empty-text">公開サイト</div>
-                    <div class="empty-subtext">まだ予想データが公開されていません</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer>
@@ -544,19 +538,6 @@
     </footer>
 
     <script>
-        // Tab Switching
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            if (tab === 'admin') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('admin-tab').classList.add('active');
-            } else {
-                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('public-tab').classList.add('active');
-            }
-        }
 
         // Auto-preview on input
         let debounceTimer;
@@ -567,7 +548,7 @@
             }, 500);
         });
 
-        // Update Preview
+        // Update Preview (Simple view for data confirmation)
         function updatePreview() {
             const inputData = document.getElementById('input-data').value.trim();
             const previewArea = document.getElementById('preview-area');
@@ -586,7 +567,7 @@
             }
 
             try {
-                const html = convertToHTML(inputData);
+                const html = convertToSimplePreview(inputData);
                 previewArea.innerHTML = html;
                 publishBtn.disabled = false;
                 showStatus('input-status', 'データを読み込みました', 'success');
@@ -601,6 +582,59 @@
                 publishBtn.disabled = true;
                 showStatus('input-status', 'データの形式が正しくありません', 'error');
             }
+        }
+
+        // Convert to Simple Preview (Plain table format)
+        function convertToSimplePreview(data) {
+            const races = data.split('---').map(r => r.trim()).filter(r => r);
+            let html = '';
+
+            races.forEach((race, idx) => {
+                const lines = race.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
+
+                const header = lines[0];
+                const horses = lines.slice(1);
+
+                html += `
+                    <div class="preview-race">
+                        <div class="preview-race-title">${header}</div>
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>馬番</th>
+                                    <th>馬名</th>
+                                    <th>スコア</th>
+                                    <th>確率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                horses.forEach((horse, i) => {
+                    const parts = horse.split(',');
+                    if (parts.length < 7) return;
+
+                    const [num, name, score1, score2, score3, score4, score5, prob] = parts;
+
+                    html += `
+                        <tr>
+                            <td>${num}</td>
+                            <td>${name}</td>
+                            <td>${score1}</td>
+                            <td>${prob}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+            return html || '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">データがありません</div></div>';
         }
 
         // Convert data to HTML
@@ -679,16 +713,20 @@
 
         // Publish to Site
         function publishToSite() {
-            const previewHTML = document.getElementById('preview-area').innerHTML;
-            document.getElementById('public-area').innerHTML = previewHTML;
+            const inputData = document.getElementById('input-data').value.trim();
 
-            localStorage.setItem('nankan-public-data', previewHTML);
+            // 元のデータからリッチなHTMLを生成
+            const richHTML = convertToHTML(inputData);
 
-            showStatus('preview-status', '✅ 公開サイトに反映しました！', 'success');
+            // LocalStorageに保存
+            localStorage.setItem('nankan-public-data', richHTML);
 
+            showStatus('preview-status', '✅ 公開サイトに反映しました！別ウィンドウで開きます...', 'success');
+
+            // 別ウィンドウで公開サイトを開く
             setTimeout(() => {
-                switchTab('public');
-            }, 1000);
+                window.open('public.html', '_blank', 'width=1200,height=800');
+            }, 500);
         }
 
         // Load Sample Data
@@ -707,16 +745,6 @@
 4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
 5,ダスク,7.0,6.8,6.3,5.9,4.5,29%`;
 
-            // サンプルデータ読み込み時は公開サイトをクリア
-            localStorage.removeItem('nankan-public-data');
-            document.getElementById('public-area').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🌐</div>
-                    <div class="empty-text">公開サイト</div>
-                    <div class="empty-subtext">まだ予想データが公開されていません</div>
-                </div>
-            `;
-
             document.getElementById('input-data').value = sampleData;
             updatePreview();
         }
@@ -726,16 +754,6 @@
             // 入力データとプレビューをクリア
             document.getElementById('input-data').value = '';
             updatePreview();
-
-            // 公開サイトもクリア
-            localStorage.removeItem('nankan-public-data');
-            document.getElementById('public-area').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🌐</div>
-                    <div class="empty-text">公開サイト</div>
-                    <div class="empty-subtext">まだ予想データが公開されていません</div>
-                </div>
-            `;
         }
 
         // Show Status Message
@@ -749,13 +767,6 @@
             }, 5000);
         }
 
-        // Load published data on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const publishedData = localStorage.getItem('nankan-public-data');
-            if (publishedData) {
-                document.getElementById('public-area').innerHTML = publishedData;
-            }
-        });
     </script>
 </body>
 </html>
