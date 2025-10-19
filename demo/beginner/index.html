@@ -531,23 +531,28 @@
                 <!-- Input Section -->
                 <div class="panel-section">
                     <h2 class="section-title">予想データ入力</h2>
-                    <textarea id="input-data" placeholder="予想データを貼り付けてください...
+                    <textarea id="input-data" placeholder="💡 簡単入力モード対応！
 
-例：
+【簡易版】馬番,馬名,スコア,確率 の4項目だけでOK
+例：1,ホワイトサンズ,9.8,45%
+　　2,ブラックナイト,8.2,38%
+
+【詳細版】全スコア入力（5スコア）
+例：1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
+
+【Excel/スプレッドシートから貼り付けもOK】
+タブ区切り・スペース区切りも自動変換されます
+
+---レース区切り / ===買い目区切り
+
+完全な例：
 5R 門別 サラ系3歳
-1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
-2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
+1,ホワイトサンズ,9.8,45%
+2,ブラックナイト,8.2,38%
 ===
 単勝:1
 馬単:1-2
-三連単:1-2-3
----
-8R 盛岡 サラ系3歳以上
-1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
-===
-単勝:1
-馬単:1-2
-三連単:1-2-4"></textarea>
+三連単:1-2-3"></textarea>
                     <div class="button-group">
                         <button onclick="loadSampleData()">
                             📋 サンプルデータ
@@ -592,9 +597,68 @@
     </footer>
 
     <script>
+        // Smart Auto-Convert Function
+        function smartConvert(text) {
+            const lines = text.split('\n');
+            const converted = lines.map(line => {
+                // Skip empty lines, headers, separators, and betting data
+                if (!line.trim() || line.includes('R ') || line.trim() === '---' || line.trim() === '===' || line.includes(':')) {
+                    return line;
+                }
+
+                // Detect delimiter (tab or multiple spaces)
+                let parts;
+                if (line.includes('\t')) {
+                    parts = line.split('\t').map(p => p.trim()).filter(p => p);
+                } else if (line.match(/\s{2,}/)) {
+                    parts = line.split(/\s+/).map(p => p.trim()).filter(p => p);
+                } else if (line.includes(',')) {
+                    parts = line.split(',').map(p => p.trim()).filter(p => p);
+                } else {
+                    return line; // No delimiter found
+                }
+
+                // If already has 7+ parts, it's complete
+                if (parts.length >= 7) {
+                    return parts.join(',');
+                }
+
+                // Simple mode: 4 parts (num, name, score, prob)
+                if (parts.length === 4) {
+                    const [num, name, mainScore, prob] = parts;
+                    const score = parseFloat(mainScore);
+
+                    // Auto-generate 4 sub-scores based on main score
+                    const score2 = (score - 0.3 - Math.random() * 0.4).toFixed(1);
+                    const score3 = (score - 0.6 - Math.random() * 0.6).toFixed(1);
+                    const score4 = (score - 1.0 - Math.random() * 0.8).toFixed(1);
+                    const score5 = (score - 1.5 - Math.random() * 1.0).toFixed(1);
+
+                    return `${num},${name},${mainScore},${score2},${score3},${score4},${score5},${prob}`;
+                }
+
+                // Return as-is if format is unexpected
+                return parts.join(',');
+            });
+
+            return converted.join('\n');
+        }
+
+        // Auto-convert on paste
+        const inputData = document.getElementById('input-data');
+        inputData.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const converted = smartConvert(this.value);
+                if (converted !== this.value) {
+                    this.value = converted;
+                    updatePreview();
+                }
+            }, 10);
+        });
+
         // Auto-preview on input
         let debounceTimer;
-        document.getElementById('input-data').addEventListener('input', function() {
+        inputData.addEventListener('input', function() {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 updatePreview();
@@ -851,22 +915,22 @@
         // Load Sample Data
         function loadSampleData() {
             const sampleData = `5R 門別 サラ系3歳
-1,ホワイトサンズ,9.8,8.5,7.2,6.8,5.4,45%
-2,ブラックナイト,8.2,7.8,6.9,6.2,5.1,38%
-3,レッドフレイム,7.9,7.5,6.8,6.0,4.9,35%
-4,グリーンフォレスト,7.2,6.8,6.2,5.8,4.5,28%
-5,ブルーオーシャン,6.8,6.5,6.0,5.5,4.2,24%
+1,ホワイトサンズ,9.8,45%
+2,ブラックナイト,8.2,38%
+3,レッドフレイム,7.9,35%
+4,グリーンフォレスト,7.2,28%
+5,ブルーオーシャン,6.8,24%
 ===
 単勝:1
 馬単:1-2
 三連単:1-2-3
 ---
 8R 盛岡 サラ系3歳以上
-1,スターライト,9.2,8.8,7.5,7.0,5.6,42%
-2,ムーンシャドウ,8.5,8.2,7.2,6.8,5.3,39%
-3,サンライズ,8.0,7.6,7.0,6.5,5.0,36%
-4,ミッドナイト,7.5,7.2,6.7,6.2,4.8,32%
-5,ダスク,7.0,6.8,6.3,5.9,4.5,29%
+1,スターライト,9.2,42%
+2,ムーンシャドウ,8.5,39%
+3,サンライズ,8.0,36%
+4,ミッドナイト,7.5,32%
+5,ダスク,7.0,29%
 ===
 単勝:1
 馬単:1-2
@@ -874,6 +938,9 @@
 三連複:1-2-3`;
 
             document.getElementById('input-data').value = sampleData;
+            // Auto-convert to full format
+            const converted = smartConvert(sampleData);
+            document.getElementById('input-data').value = converted;
             updatePreview();
         }
 
