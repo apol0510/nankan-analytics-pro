@@ -1113,11 +1113,18 @@
                 let horseNum = null;
                 let horseName = null;
 
+                console.log(`========== 全${lines.length}行をパース開始 ==========`);
+
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
 
                     // 空行をスキップ
                     if (!line) continue;
+
+                    // 最初の10行は生の内容を表示
+                    if (i < 10) {
+                        console.log(`行${i}: "${line.substring(0, 50)}" (長さ${line.length})`);
+                    }
 
                     // ヘッダー行をスキップ
                     if (line.includes('枠番') || line.includes('競走馬') || line.includes('騎手・調教師')) {
@@ -1170,21 +1177,26 @@
                     }
 
                     // 成績データを検出（例: "全       1-     0-     0-     9"）
-                    if (line.includes('全') && currentHorse) {
-                        console.log('成績行候補:', line);
-                        const statsMatch = line.match(/全\s+(\d+)-\s+(\d+)-\s+(\d+)-\s+(\d+)/);
-                        if (statsMatch) {
-                            const [_, w, p, s, r] = statsMatch;
-                            const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
-                            console.log(`📊 成績検出: ${w}-${p}-${s}-${r} (合計${total})`);
-                            if (total > 0 && !currentHorse.totalRaces) {
-                                currentHorse.totalRaces = {w, p, s, r, total};
-                                currentHorse.winRate = (parseInt(w) / total * 100).toFixed(1);
-                                currentHorse.placeRate = ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1);
-                                console.log(`✅ 成績保存: 勝率${currentHorse.winRate}% 連対率${currentHorse.placeRate}%`);
+                    if (line.includes('全')) {
+                        console.log('🔍 「全」を含む行:', line);
+                        if (currentHorse) {
+                            console.log('  → currentHorseあり、成績パース試行');
+                            const statsMatch = line.match(/全\s+(\d+)-\s+(\d+)-\s+(\d+)-\s+(\d+)/);
+                            if (statsMatch) {
+                                const [_, w, p, s, r] = statsMatch;
+                                const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
+                                console.log(`  ✅ 成績検出: ${w}-${p}-${s}-${r} (合計${total})`);
+                                if (total > 0 && !currentHorse.totalRaces) {
+                                    currentHorse.totalRaces = {w, p, s, r, total};
+                                    currentHorse.winRate = (parseInt(w) / total * 100).toFixed(1);
+                                    currentHorse.placeRate = ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1);
+                                    console.log(`  ✅ 成績保存: 勝率${currentHorse.winRate}% 連対率${currentHorse.placeRate}%`);
+                                }
+                            } else {
+                                console.log('  ⚠️ 正規表現マッチ失敗:', line.substring(0, 100));
                             }
                         } else {
-                            console.log('⚠️ 成績の正規表現マッチ失敗');
+                            console.log('  ⚠️ currentHorse未設定');
                         }
                     }
 
