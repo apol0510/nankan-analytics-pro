@@ -378,13 +378,15 @@
                 if (!line) continue;
 
                 // 馬番、印、馬名を抽出
-                const match = line.match(/^(\d+)\s+(◎|○|△|▲|\s)*\s+(.+)$/);
+                const match = line.match(/^(\d+)\s+([◎○△▲\s]*)\s+(.+)$/);
                 if (match) {
                     const num = parseInt(match[1]);
-                    const marks = (match[2] || '').replace(/\s/g, '').split('').filter(m => '◎○△▲'.includes(m));
+                    const marksStr = match[2] || '';
+                    const marks = marksStr.replace(/\s/g, '').split('').filter(m => m && '◎○△▲'.includes(m));
                     const name = match[3].trim();
 
                     horses.push({ num, marks, name });
+                    console.log(`馬${num}: 印=${marks.join('')} (${marks.length}個) 馬名=${name}`);
                 }
             }
 
