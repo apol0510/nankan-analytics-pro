@@ -473,39 +473,46 @@
                             ${PRESET_COMMENTS.map((comment, i) =>
                                 `<option value="${i}">${comment.substring(0, 30)}...</option>`
                             ).join('')}
-                        </select>
-                    </div>
-                `;
+                        </select>`;
             }
+            html += `</div>`;
 
             // 対抗
+            html += `
+                <div class="horse-category" style="border-color: #C0C0C0;"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event, 'taiko')">
+                    <div class="category-header">
+                        <span class="category-icon">🥈</span>
+                        <span>対抗</span>
+                    </div>
+            `;
             if (c.taiko) {
-                html += `
-                    <div class="horse-category" style="border-color: #C0C0C0;">
-                        <div class="category-header">
-                            <span class="category-icon">🥈</span>
-                            <span>対抗</span>
-                        </div>
-                        <div class="horse-tag">${c.taiko.num}番 ${c.taiko.name}</div>
+                html += `<div class="horse-tag" draggable="true" data-horse-num="${c.taiko.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${c.taiko.num}番 ${c.taiko.name}</div>
                         <select class="comment-select" onchange="updateComment('taiko', this.value)">
                             <option value="">（コメントを選択）</option>
                             ${PRESET_COMMENTS.map((comment, i) =>
                                 `<option value="${i}">${comment.substring(0, 30)}...</option>`
                             ).join('')}
-                        </select>
-                    </div>
-                `;
+                        </select>`;
             }
+            html += `</div>`;
 
             // 単穴
             if (c.tanana.length > 0) {
                 html += `
-                    <div class="horse-category" style="border-color: #CD7F32;">
+                    <div class="horse-category" style="border-color: #CD7F32;"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, 'tanana')">
                         <div class="category-header">
                             <span class="category-icon">🥉</span>
                             <span>単穴</span>
                         </div>
-                        ${c.tanana.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                        ${c.tanana.map(h => `<div class="horse-tag" draggable="true" data-horse-num="${h.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${h.num}番 ${h.name}</div>`).join('')}
                     </div>
                 `;
             }
@@ -513,12 +520,16 @@
             // 連下
             if (c.renka.length > 0) {
                 html += `
-                    <div class="horse-category">
+                    <div class="horse-category"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, 'renka')">
                         <div class="category-header">
                             <span class="category-icon">📌</span>
                             <span>連下</span>
                         </div>
-                        ${c.renka.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                        ${c.renka.map(h => `<div class="horse-tag" draggable="true" data-horse-num="${h.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${h.num}番 ${h.name}</div>`).join('')}
                     </div>
                 `;
             }
@@ -526,7 +537,10 @@
             // 抑え（選択可能）
             if (c.osae.length > 0) {
                 html += `
-                    <div class="horse-category">
+                    <div class="horse-category"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, 'osae')">
                         <div class="category-header">
                             <span class="category-icon">📎</span>
                             <span>抑え</span>
@@ -535,7 +549,8 @@
                             <input type="checkbox" id="use-osae" onchange="toggleOsae()">
                             <label for="use-osae">買い目に抑え馬を含める</label>
                         </div>
-                        ${c.osae.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                        ${c.osae.map(h => `<div class="horse-tag" draggable="true" data-horse-num="${h.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${h.num}番 ${h.name}</div>`).join('')}
                     </div>
                 `;
             }
@@ -543,12 +558,16 @@
             // 除外
             if (c.excluded.length > 0) {
                 html += `
-                    <div class="horse-category" style="opacity: 0.5;">
+                    <div class="horse-category" style="opacity: 0.5;"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, 'excluded')">
                         <div class="category-header">
                             <span class="category-icon">🚫</span>
                             <span>除外</span>
                         </div>
-                        ${c.excluded.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                        ${c.excluded.map(h => `<div class="horse-tag" draggable="true" data-horse-num="${h.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${h.num}番 ${h.name}</div>`).join('')}
                     </div>
                 `;
             }
