@@ -61,7 +61,13 @@ exports.handler = async (event, context) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const html = await response.text();
+    // Get response as buffer to handle Shift-JIS encoding
+    const buffer = await response.arrayBuffer();
+
+    // Decode from Shift-JIS to UTF-8
+    // TextDecoder with 'shift-jis' encoding (also accepts 'shift_jis', 'sjis')
+    const decoder = new TextDecoder('shift-jis');
+    const html = decoder.decode(buffer);
 
     console.log('Successfully fetched HTML, length:', html.length);
 
