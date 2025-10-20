@@ -1289,9 +1289,8 @@
                         if (baban && horseName) {
                             let statsData = null;
 
-                            // 現在の行と次の20行を検索
-                            for (let j = i; j < Math.min(i + 20, rowsArray.length); j++) {
-                                const searchRow = rowsArray[j];
+                            // 現在の行のみを検索（他の馬の成績を誤検出しないため）
+                            const searchRow = row;
 
                                 // 方法1: <td class="is-grnum">内の<span>タグから成績を抽出（南関公式サイト形式）
                                 const statsCells = searchRow.querySelectorAll('td.is-grnum');
@@ -1316,8 +1315,7 @@
                                                             winRate: (w / total * 100).toFixed(1),
                                                             placeRate: ((w + p) / total * 100).toFixed(1)
                                                         };
-                                                        console.log(`  ✅ 成績データ発見（span方式）: ${w}-${p}-${s}-${r} (行${j})`);
-                                                        break;
+                                                        console.log(`  ✅ 成績データ発見（span方式）: ${w}-${p}-${s}-${r}`);
                                                     }
                                                 }
                                             }
@@ -1338,14 +1336,10 @@
                                                 winRate: (parseInt(w) / total * 100).toFixed(1),
                                                 placeRate: ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1)
                                             };
-                                            console.log(`  ✅ 成績データ発見（正規表現）: ${w}-${p}-${s}-${r} (行${j})`);
-                                            break;
+                                            console.log(`  ✅ 成績データ発見（正規表現）: ${w}-${p}-${s}-${r}`);
                                         }
                                     }
                                 }
-
-                                if (statsData) break;
-                            }
 
                             // 馬データを追加
                             detectedHorses.push({
@@ -1418,9 +1412,11 @@
                     console.log(`  └─ 信頼度: ${horse.details.confidence}%`);
                 });
 
-                // 予想データ生成（スコア順）
+                // 予想データ生成（スコア順） - 8項目形式で出力
                 const results = horsesWithScores.map(horse => {
-                    return `${horse.num},${horse.name},${horse.scoreStr},${horse.prob}%`;
+                    // confidence (0-100%) を 0-10 スケールに変換
+                    const adaptability = (horse.details.confidence / 10).toFixed(1);
+                    return `${horse.num},${horse.name},${horse.scoreStr},${horse.details.basic},${horse.details.stability},${horse.details.experience},${adaptability},${horse.prob}%`;
                 });
 
                 // 買い目自動生成（上位3頭）
