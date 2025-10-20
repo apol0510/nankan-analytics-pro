@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NANKAN 印評価システム Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4CAF50;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px 0 0;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .button-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+
+        .button-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+        }
+
+        .classification-panel {
+            margin-top: 20px;
+        }
+
+        .horse-category {
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .category-icon {
+            font-size: 24px;
+        }
+
+        .horse-tag {
+            display: inline-block;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: move;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .horse-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .horse-tag .remove-btn {
+            margin-left: 8px;
+            color: #f44336;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .comment-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 8px;
+            background: white;
+        }
+
+        .comment-select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .betting-output {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .status-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-option label {
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏇 NANKAN 印評価システム Pro</h1>
+            <p>印データから自動で予想・買い目を生成します</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- 左側: 入力エリア -->
+            <div class="panel">
+                <div class="panel-title">📋 予想データ入力</div>
+
+                <textarea id="input-data" placeholder="例:
+大井1R ３歳(三)(四)ダ1,600m（12頭） 発走時刻14:30
+1    ◎△○△    バリアシオン
+2    △△◎    ガンナール
+3    ○◎△○    サルジュ
+4    ▲    ピースフィールド
+5    △△▲▲    トーセンアシュリー
+6        イサゴールド
+7    ▲△    コパカバーナ
+8    ▲△△    マジカルレインボー
+9        レイヴンマスター
+10    ▲○◎△    ミユンガー
+11    △▲▲    ハックルベリー
+12    △△    ボンマティ"></textarea>
+
+                <button class="button button-primary" onclick="autoClassify()">🔄 自動分類</button>
+                <button class="button button-secondary" onclick="clearAll()">🗑️ クリア</button>
+
+                <div id="status-message"></div>
+            </div>
+
+            <!-- 右側: 分類結果 -->
+            <div class="panel">
+                <div class="panel-title">🎯 分類結果・編集</div>
+
+                <div class="classification-panel" id="classification-panel">
+                    <p style="color: #999; text-align: center; padding: 40px;">データを入力して「自動分類」をクリックしてください</p>
+                </div>
+
+                <button class="button button-primary" onclick="generateBetting()" style="width: 100%; margin-top: 20px;">💰 買い目生成</button>
+            </div>
+        </div>
+
+        <!-- 買い目出力エリア -->
+        <div class="panel" style="margin-top: 20px;" id="betting-panel" hidden>
+            <div class="panel-title">💰 推奨買い目</div>
+            <div class="betting-output" id="betting-output"></div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let raceData = {
+            raceName: '',
+            horses: [],
+            classification: {
+                honmei: null,
+                taiko: null,
+                tanana: [],
+                renka: [],
+                osae: [],
+                excluded: []
+            },
+            comments: {
+                honmei: '',
+                taiko: ''
+            }
+        };
+
+        // 定型コメント（20個）
+        const PRESET_COMMENTS = [
+            '前走で好走しており、勢いに乗っている。今回も同じ調子なら好勝負が期待できる',
+            '連勝中で波に乗っており、このまま連勝街道を突き進む可能性が高い',
+            '前走は惜敗だったが内容は悪くない。今回は巻き返しが十分に期待できる',
+            '休み明けにもかかわらず仕上がりは良好。調教の動きも申し分なく信頼できる',
+            '抜群の安定感を誇り、大崩れの心配が少ない。堅実に馬券に絡んでくるタイプ',
+            'ここ数戦は内容が充実しており、上昇ムードが漂っている。今回も期待大',
+            '距離適性は◎で、この条件なら力を存分に発揮できる。信頼度は高い',
+            '馬場適性が抜群で、現在の馬場状態なら有利に立ち回れる',
+            'コース実績が豊富で、このコースを熟知している。地の利は大きい',
+            '枠順に恵まれており、理想的なポジションから競馬ができる',
+            '内枠を引いたことで有利な展開が予想される。この利を生かしたい',
+            '騎手が変更になったことがプラス材料。新鞍上との相性に期待がかかる',
+            '手綱を取る騎手の好騎乗に期待。腕の見せ所となる一戦',
+            '陣営が本気で臨む一戦。気合の入れ方からも勝負気配が伝わってくる',
+            '逃げ・先行策でレースを有利に運べる。そのまま押し切れる可能性も十分',
+            '差し馬として末脚が武器。直線で伸びる脚があれば一気に抜け出せる',
+            '展開が向けば浮上する可能性も。レースの流れ次第では面白い存在',
+            '人気は低いが侮れない実力を持つ。穴を開ける可能性を秘めている',
+            'クラスが上がったが対応できる力はある。ここでも通用する素質は十分',
+            '上がり最速を記録する可能性があり、直線での伸び脚に注目したい'
+        ];
+
+        // データ入力をパース
+        function parseInputData(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return null;
+
+            const raceName = lines[0].trim();
+            const horses = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // 馬番、印、馬名を抽出
+                const match = line.match(/^(\d+)\s+(◎|○|△|▲|\s)*\s+(.+)$/);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    const marks = (match[2] || '').replace(/\s/g, '').split('').filter(m => '◎○△▲'.includes(m));
+                    const name = match[3].trim();
+
+                    horses.push({ num, marks, name });
+                }
+            }
+
+            return { raceName, horses };
+        }
+
+        // 自動分類ロジック
+        function autoClassify() {
+            const inputText = document.getElementById('input-data').value;
+            const parsed = parseInputData(inputText);
+
+            if (!parsed || parsed.horses.length === 0) {
+                showStatus('⚠️ データ形式が正しくありません', 'error');
+                return;
+            }
+
+            raceData.raceName = parsed.raceName;
+            raceData.horses = parsed.horses;
+
+            // 分類ルール適用
+            const classification = {
+                honmei: null,
+                taiko: null,
+                tanana: [],
+                renka: [],
+                osae: [],
+                excluded: []
+            };
+
+            parsed.horses.forEach(horse => {
+                if (horse.marks.length === 0) {
+                    classification.excluded.push(horse);
+                    return;
+                }
+
+                const rightmost = horse.marks[horse.marks.length - 1];
+                const count = horse.marks.length;
+
+                if (rightmost === '◎') {
+                    if (!classification.honmei) classification.honmei = horse;
+                    else classification.tanana.push(horse);
+                } else if (rightmost === '○') {
+                    if (!classification.taiko) classification.taiko = horse;
+                    else classification.tanana.push(horse);
+                } else if (rightmost === '▲' && count >= 3) {
+                    classification.tanana.push(horse);
+                } else if (rightmost === '▲' && count <= 2) {
+                    classification.osae.push(horse);
+                } else if (rightmost === '△' && count >= 3) {
+                    classification.renka.push(horse);
+                } else if (rightmost === '△' && count <= 2) {
+                    classification.osae.push(horse);
+                } else {
+                    classification.osae.push(horse);
+                }
+            });
+
+            raceData.classification = classification;
+            renderClassification();
+            showStatus(`✅ ${parsed.horses.length}頭を分類しました`, 'success');
+        }
+
+        // 分類結果を表示
+        function renderClassification() {
+            const panel = document.getElementById('classification-panel');
+            const c = raceData.classification;
+
+            let html = '';
+
+            // 本命
+            if (c.honmei) {
+                html += `
+                    <div class="horse-category" style="border-color: #FFD700;">
+                        <div class="category-header">
+                            <span class="category-icon">🥇</span>
+                            <span>本命</span>
+                        </div>
+                        <div class="horse-tag">${c.honmei.num}番 ${c.honmei.name}</div>
+                        <select class="comment-select" onchange="updateComment('honmei', this.value)">
+                            <option value="">（コメントを選択）</option>
+                            ${PRESET_COMMENTS.map((comment, i) =>
+                                `<option value="${i}">${comment.substring(0, 30)}...</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
+            // 対抗
+            if (c.taiko) {
+                html += `
+                    <div class="horse-category" style="border-color: #C0C0C0;">
+                        <div class="category-header">
+                            <span class="category-icon">🥈</span>
+                            <span>対抗</span>
+                        </div>
+                        <div class="horse-tag">${c.taiko.num}番 ${c.taiko.name}</div>
+                        <select class="comment-select" onchange="updateComment('taiko', this.value)">
+                            <option value="">（コメントを選択）</option>
+                            ${PRESET_COMMENTS.map((comment, i) =>
+                                `<option value="${i}">${comment.substring(0, 30)}...</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
+            // 単穴
+            if (c.tanana.length > 0) {
+                html += `
+                    <div class="horse-category" style="border-color: #CD7F32;">
+                        <div class="category-header">
+                            <span class="category-icon">🥉</span>
+                            <span>単穴</span>
+                        </div>
+                        ${c.tanana.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            // 連下
+            if (c.renka.length > 0) {
+                html += `
+                    <div class="horse-category">
+                        <div class="category-header">
+                            <span class="category-icon">📌</span>
+                            <span>連下</span>
+                        </div>
+                        ${c.renka.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            // 抑え（選択可能）
+            if (c.osae.length > 0) {
+                html += `
+                    <div class="horse-category">
+                        <div class="category-header">
+                            <span class="category-icon">📎</span>
+                            <span>抑え</span>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="use-osae" onchange="toggleOsae()">
+                            <label for="use-osae">買い目に抑え馬を含める</label>
+                        </div>
+                        ${c.osae.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            // 除外
+            if (c.excluded.length > 0) {
+                html += `
+                    <div class="horse-category" style="opacity: 0.5;">
+                        <div class="category-header">
+                            <span class="category-icon">🚫</span>
+                            <span>除外</span>
+                        </div>
+                        ${c.excluded.map(h => `<div class="horse-tag">${h.num}番 ${h.name}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            panel.innerHTML = html;
+        }
+
+        // コメント更新
+        function updateComment(type, index) {
+            if (index !== '') {
+                raceData.comments[type] = PRESET_COMMENTS[parseInt(index)];
+            } else {
+                raceData.comments[type] = '';
+            }
+        }
+
+        // 抑え馬の使用切替
+        function toggleOsae() {
+            const checkbox = document.getElementById('use-osae');
+            console.log('抑え馬を使用:', checkbox.checked);
+        }
+
+        // 買い目生成
+        function generateBetting() {
+            const c = raceData.classification;
+
+            if (!c.honmei || !c.taiko) {
+                showStatus('⚠️ 本命・対抗が設定されていません', 'error');
+                return;
+            }
+
+            const useOsae = document.getElementById('use-osae')?.checked || false;
+
+            let output = '━━━━━━━━━━━━━━━━━━━━━━\n';
+            output += '💰 本日の推奨買い目\n';
+            output += '━━━━━━━━━━━━━━━━━━━━━━\n\n';
+            output += raceData.raceName + '\n\n';
+
+            // 本命・対抗
+            output += `🥇 本命: ${c.honmei.num}番 ${c.honmei.name}\n`;
+            if (raceData.comments.honmei) {
+                output += `   💬 ${raceData.comments.honmei}\n`;
+            }
+            output += '\n';
+
+            output += `🥈 対抗: ${c.taiko.num}番 ${c.taiko.name}\n`;
+            if (raceData.comments.taiko) {
+                output += `   💬 ${raceData.comments.taiko}\n`;
+            }
+            output += '\n';
+
+            // 単穴
+            if (c.tanana.length > 0) {
+                output += `🥉 単穴: ${c.tanana.map(h => `${h.num}番 ${h.name}`).join(', ')}\n\n`;
+            }
+
+            // 連下
+            if (c.renka.length > 0) {
+                output += `📌 連下: ${c.renka.map(h => `${h.num}番 ${h.name}`).join(', ')}\n\n`;
+            }
+
+            // 抑え（使用する場合）
+            if (useOsae && c.osae.length > 0) {
+                output += `📎 抑え: ${c.osae.map(h => `${h.num}番 ${h.name}`).join(', ')}\n\n`;
+            }
+
+            output += '━━━━━━━━━━━━━━━━━━━━━━\n';
+            output += '💰 推奨馬券\n';
+            output += '━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+            // 買い目生成
+            const honmei = c.honmei.num;
+            const taiko = c.taiko.num;
+            const tanana = c.tanana.map(h => h.num);
+            const renka = c.renka.map(h => h.num);
+            const osae = useOsae ? c.osae.map(h => h.num) : [];
+
+            // 基本
+            output += '【本線】\n';
+            output += `単勝: ${honmei}番 (100円)\n`;
+            output += `馬単: ${honmei}-${taiko} (100円)\n\n`;
+
+            // 三連単フォーメーション
+            output += '【三連単フォーメーション】\n';
+            let sanrentanPoints = 0;
+
+            // 本命軸
+            const thirdHorses = [...tanana, ...renka, ...osae];
+            if (thirdHorses.length > 0) {
+                output += `${honmei}-${taiko}-${thirdHorses.join(',')}`;
+                const points = thirdHorses.length;
+                sanrentanPoints += points;
+                output += `  (${points}点×100円= ${points * 100}円)\n`;
+            }
+
+            if (tanana.length > 0) {
+                const thirdForTanana = [...tanana.slice(1), ...renka, ...osae].filter(n => n !== tanana[0]);
+                if (thirdForTanana.length > 0) {
+                    output += `${honmei}-${tanana[0]}-${thirdForTanana.join(',')}`;
+                    const points = thirdForTanana.length;
+                    sanrentanPoints += points;
+                    output += `  (${points}点×100円= ${points * 100}円)\n`;
+                }
+            }
+
+            // 対抗軸
+            if (thirdHorses.length > 0) {
+                output += `${taiko}-${honmei}-${thirdHorses.join(',')}`;
+                const points = thirdHorses.length;
+                sanrentanPoints += points;
+                output += `  (${points}点×100円= ${points * 100}円)\n`;
+            }
+
+            output += `\n合計: ${sanrentanPoints}点 = ${sanrentanPoints * 100}円\n\n`;
+
+            // ワイド
+            output += '【ワイド】\n';
+            output += `${honmei}-${taiko}, `;
+            if (tanana.length > 0) {
+                output += `${honmei}-${tanana[0]}, ${taiko}-${tanana[0]}`;
+            }
+            if (renka.length > 0) {
+                output += `, ${honmei}-${renka[0]}, ${taiko}-${renka[0]}`;
+            }
+            output += '\n\n';
+
+            output += '━━━━━━━━━━━━━━━━━━━━━━\n';
+            const totalCost = 200 + sanrentanPoints * 100 + 500;
+            output += `💵 合計投資額: 約${totalCost.toLocaleString()}円\n`;
+            output += `🎯 的中目標: 三連単 ¥10,000以上\n`;
+            output += '━━━━━━━━━━━━━━━━━━━━━━\n';
+
+            document.getElementById('betting-output').textContent = output;
+            document.getElementById('betting-panel').hidden = false;
+
+            showStatus('✅ 買い目を生成しました', 'success');
+        }
+
+        // ステータス表示
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = '';
+            }, 5000);
+        }
+
+        // クリア
+        function clearAll() {
+            document.getElementById('input-data').value = '';
+            document.getElementById('classification-panel').innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">データを入力して「自動分類」をクリックしてください</p>';
+            document.getElementById('betting-panel').hidden = true;
+            raceData = {
+                raceName: '',
+                horses: [],
+                classification: {
+                    honmei: null,
+                    taiko: null,
+                    tanana: [],
+                    renka: [],
+                    osae: [],
+                    excluded: []
+                },
+                comments: {
+                    honmei: '',
+                    taiko: ''
+                }
+            };
+            showStatus('✅ クリアしました', 'success');
+        }
+    </script>
+</body>
+</html>
