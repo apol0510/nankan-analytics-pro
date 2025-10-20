@@ -147,18 +147,52 @@
             cursor: move;
             transition: all 0.3s;
             font-size: 14px;
+            position: relative;
         }
 
         .horse-tag:hover {
             transform: translateY(-2px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border-color: #4CAF50;
         }
 
-        .horse-tag .remove-btn {
-            margin-left: 8px;
-            color: #f44336;
+        .horse-tag.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        .horse-tag .category-select {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            min-width: 120px;
+            display: none;
+        }
+
+        .horse-tag .category-select.active {
+            display: block;
+        }
+
+        .horse-tag .category-option {
+            padding: 6px 12px;
             cursor: pointer;
-            font-weight: bold;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .horse-tag .category-option:hover {
+            background: #f0f0f0;
+        }
+
+        .horse-category.drag-over {
+            background: #e8f5e9;
+            border-color: #4CAF50;
         }
 
         .comment-select {
@@ -261,6 +295,9 @@
 12    △△    ボンマティ"></textarea>
 
                 <button class="button button-primary" onclick="autoClassify()">🔄 自動分類</button>
+                <button class="button button-secondary" onclick="loadSampleData()">📋 サンプルデータ</button>
+                <button class="button button-secondary" onclick="saveData()">💾 保存</button>
+                <button class="button button-secondary" onclick="loadData()">📂 読込</button>
                 <button class="button button-secondary" onclick="clearAll()">🗑️ クリア</button>
 
                 <div id="status-message"></div>
@@ -418,14 +455,19 @@
             let html = '';
 
             // 本命
+            html += `
+                <div class="horse-category" style="border-color: #FFD700;"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event, 'honmei')">
+                    <div class="category-header">
+                        <span class="category-icon">🥇</span>
+                        <span>本命</span>
+                    </div>
+            `;
             if (c.honmei) {
-                html += `
-                    <div class="horse-category" style="border-color: #FFD700;">
-                        <div class="category-header">
-                            <span class="category-icon">🥇</span>
-                            <span>本命</span>
-                        </div>
-                        <div class="horse-tag">${c.honmei.num}番 ${c.honmei.name}</div>
+                html += `<div class="horse-tag" draggable="true" data-horse-num="${c.honmei.num}"
+                         ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">${c.honmei.num}番 ${c.honmei.name}</div>
                         <select class="comment-select" onchange="updateComment('honmei', this.value)">
                             <option value="">（コメントを選択）</option>
                             ${PRESET_COMMENTS.map((comment, i) =>
@@ -678,6 +720,139 @@
                 }
             };
             showStatus('✅ クリアしました', 'success');
+        }
+
+        // サンプルデータ読み込み
+        function loadSampleData() {
+            const sampleData = `大井1R ３歳(三)(四)ダ1,600m（12頭） 発走時刻14:30
+1    ◎△○△    バリアシオン
+2    △△◎    ガンナール
+3    ○◎△○    サルジュ
+4    ▲    ピースフィールド
+5    △△▲▲    トーセンアシュリー
+6        イサゴールド
+7    ▲△    コパカバーナ
+8    ▲△△    マジカルレインボー
+9        レイヴンマスター
+10    ▲○◎△    ミユンガー
+11    △▲▲    ハックルベリー
+12    △△    ボンマティ`;
+
+            document.getElementById('input-data').value = sampleData;
+            showStatus('✅ サンプルデータを読み込みました', 'success');
+        }
+
+        // データ保存（LocalStorage）
+        function saveData() {
+            if (!raceData.raceName) {
+                showStatus('⚠️ 保存するデータがありません', 'error');
+                return;
+            }
+
+            const saveKey = prompt('保存名を入力してください:', 'レース予想_' + new Date().toLocaleDateString('ja-JP'));
+            if (!saveKey) return;
+
+            try {
+                localStorage.setItem('nankan_race_' + saveKey, JSON.stringify(raceData));
+                showStatus('✅ 「' + saveKey + '」として保存しました', 'success');
+            } catch (e) {
+                showStatus('❌ 保存に失敗しました: ' + e.message, 'error');
+            }
+        }
+
+        // データ読み込み（LocalStorage）
+        function loadData() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('nankan_race_')) {
+                    keys.push(key.replace('nankan_race_', ''));
+                }
+            }
+
+            if (keys.length === 0) {
+                showStatus('⚠️ 保存されたデータがありません', 'error');
+                return;
+            }
+
+            const selection = prompt('読み込むデータを選択してください:\n\n' + keys.map((k, i) => (i + 1) + '. ' + k).join('\n') + '\n\n番号を入力:', '1');
+            if (!selection) return;
+
+            const index = parseInt(selection) - 1;
+            if (index < 0 || index >= keys.length) {
+                showStatus('❌ 無効な選択です', 'error');
+                return;
+            }
+
+            try {
+                const loadKey = 'nankan_race_' + keys[index];
+                const data = JSON.parse(localStorage.getItem(loadKey));
+                raceData = data;
+
+                // データを復元
+                const inputLines = [data.raceName];
+                data.horses.forEach(h => {
+                    const marks = h.marks.join('');
+                    inputLines.push(`${h.num}    ${marks}    ${h.name}`);
+                });
+                document.getElementById('input-data').value = inputLines.join('\n');
+
+                renderClassification();
+                showStatus('✅ 「' + keys[index] + '」を読み込みました', 'success');
+            } catch (e) {
+                showStatus('❌ 読み込みに失敗しました: ' + e.message, 'error');
+            }
+        }
+
+        // ドラッグ開始
+        let draggedHorseNum = null;
+
+        function handleDragStart(e) {
+            draggedHorseNum = parseInt(e.target.dataset.horseNum);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetCategory) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (!draggedHorseNum) return;
+
+            // 馬を検索
+            const horse = raceData.horses.find(h => h.num === draggedHorseNum);
+            if (!horse) return;
+
+            // 元のカテゴリから削除
+            const c = raceData.classification;
+            if (c.honmei && c.honmei.num === draggedHorseNum) c.honmei = null;
+            else if (c.taiko && c.taiko.num === draggedHorseNum) c.taiko = null;
+            else {
+                ['tanana', 'renka', 'osae', 'excluded'].forEach(cat => {
+                    const index = c[cat].findIndex(h => h.num === draggedHorseNum);
+                    if (index !== -1) c[cat].splice(index, 1);
+                });
+            }
+
+            // 新しいカテゴリに追加
+            if (targetCategory === 'honmei') c.honmei = horse;
+            else if (targetCategory === 'taiko') c.taiko = horse;
+            else c[targetCategory].push(horse);
+
+            renderClassification();
+            showStatus('✅ カテゴリを変更しました', 'success');
         }
     </script>
 </body>
