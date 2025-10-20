@@ -1137,31 +1137,57 @@
                         const row = rowsArray[i];
                         const cells = row.querySelectorAll('td');
 
-                        // rowspan属性を持つセルで馬番を検出
+                        // 馬番を検出: <td class="umaban">で1-18の数字
                         let baban = null;
                         let horseName = null;
 
-                        // 馬番: rowspan属性を持つ<td>で1-18の数字
-                        for (const cell of cells) {
-                            if (cell.hasAttribute('rowspan')) {
-                                const text = cell.textContent.trim();
-                                const num = parseInt(text);
-                                if (!isNaN(num) && num >= 1 && num <= 18) {
-                                    baban = num;
-                                    console.log(`🐴 馬番${baban}を検出（行${i}）`);
-                                    break;
+                        // 方法1: class="umaban"のセルを探す（南関公式サイト形式）
+                        const umabanCell = row.querySelector('td.umaban');
+                        if (umabanCell) {
+                            const num = parseInt(umabanCell.textContent.trim());
+                            if (!isNaN(num) && num >= 1 && num <= 18) {
+                                baban = num;
+                                console.log(`🐴 馬番${baban}を検出（umaban class）`);
+                            }
+                        }
+
+                        // 方法2（フォールバック）: rowspan属性を持つセルで馬番を探す
+                        if (!baban) {
+                            for (const cell of cells) {
+                                if (cell.hasAttribute('rowspan')) {
+                                    const text = cell.textContent.trim();
+                                    const num = parseInt(text);
+                                    if (!isNaN(num) && num >= 1 && num <= 18) {
+                                        baban = num;
+                                        console.log(`🐴 馬番${baban}を検出（rowspan）`);
+                                        break;
+                                    }
                                 }
                             }
                         }
 
-                        // 馬名: <a>タグでカタカナ3文字以上
+                        // 馬名を検出: <a>タグ内の<span class="nk23_u-text16">またはカタカナ3文字以上
                         const links = row.querySelectorAll('a');
                         for (const link of links) {
-                            const text = link.textContent.trim();
-                            if (/^[ァ-ヶー]{3,}$/.test(text)) {
-                                horseName = text;
-                                console.log(`  馬名「${horseName}」を検出`);
-                                break;
+                            // 方法1: <span class="nk23_u-text16">を探す（南関公式サイト形式）
+                            const nameSpan = link.querySelector('span.nk23_u-text16');
+                            if (nameSpan) {
+                                const text = nameSpan.textContent.trim();
+                                if (text.length >= 3) {
+                                    horseName = text;
+                                    console.log(`  馬名「${horseName}」を検出（nk23_u-text16 span）`);
+                                    break;
+                                }
+                            }
+
+                            // 方法2（フォールバック）: カタカナ3文字以上
+                            if (!horseName) {
+                                const text = link.textContent.trim();
+                                if (/^[ァ-ヶー]{3,}$/.test(text)) {
+                                    horseName = text;
+                                    console.log(`  馬名「${horseName}」を検出（カタカナパターン）`);
+                                    break;
+                                }
                             }
                         }
 
@@ -1172,23 +1198,59 @@
                             // 現在の行と次の20行を検索
                             for (let j = i; j < Math.min(i + 20, rowsArray.length); j++) {
                                 const searchRow = rowsArray[j];
-                                const searchText = searchRow.textContent;
 
-                                // "全 X- X- X- X" 形式または "X-X-X-X" 形式を検索
-                                const statsMatch = searchText.match(/全?\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
-                                if (statsMatch) {
-                                    const [_, w, p, s, r] = statsMatch;
-                                    const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
-                                    if (total > 0) {
-                                        statsData = {
-                                            w, p, s, r, total,
-                                            winRate: (parseInt(w) / total * 100).toFixed(1),
-                                            placeRate: ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1)
-                                        };
-                                        console.log(`  ✅ 成績データ発見: ${w}-${p}-${s}-${r} (行${j})`);
-                                        break;
+                                // 方法1: <td class="is-grnum">内の<span>タグから成績を抽出（南関公式サイト形式）
+                                const statsCells = searchRow.querySelectorAll('td.is-grnum');
+                                for (const statsCell of statsCells) {
+                                    const spans = statsCell.querySelectorAll('span');
+                                    if (spans.length >= 4) {
+                                        // 最後の<p>内の4つの<span>を取得（全体成績）
+                                        const pTag = statsCell.querySelector('p');
+                                        if (pTag) {
+                                            const statSpans = pTag.querySelectorAll('span');
+                                            if (statSpans.length >= 4) {
+                                                const w = parseInt(statSpans[0].textContent.trim());
+                                                const p = parseInt(statSpans[1].textContent.trim());
+                                                const s = parseInt(statSpans[2].textContent.trim());
+                                                const r = parseInt(statSpans[3].textContent.trim());
+
+                                                if (!isNaN(w) && !isNaN(p) && !isNaN(s) && !isNaN(r)) {
+                                                    const total = w + p + s + r;
+                                                    if (total > 0) {
+                                                        statsData = {
+                                                            w, p, s, r, total,
+                                                            winRate: (w / total * 100).toFixed(1),
+                                                            placeRate: ((w + p) / total * 100).toFixed(1)
+                                                        };
+                                                        console.log(`  ✅ 成績データ発見（span方式）: ${w}-${p}-${s}-${r} (行${j})`);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+
+                                // 方法2（フォールバック）: テキストから正規表現で成績を抽出
+                                if (!statsData) {
+                                    const searchText = searchRow.textContent;
+                                    const statsMatch = searchText.match(/全?\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
+                                    if (statsMatch) {
+                                        const [_, w, p, s, r] = statsMatch;
+                                        const total = parseInt(w) + parseInt(p) + parseInt(s) + parseInt(r);
+                                        if (total > 0) {
+                                            statsData = {
+                                                w, p, s, r, total,
+                                                winRate: (parseInt(w) / total * 100).toFixed(1),
+                                                placeRate: ((parseInt(w) + parseInt(p)) / total * 100).toFixed(1)
+                                            };
+                                            console.log(`  ✅ 成績データ発見（正規表現）: ${w}-${p}-${s}-${r} (行${j})`);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (statsData) break;
                             }
 
                             // 馬データを追加
