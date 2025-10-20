@@ -634,6 +634,29 @@
                 <!-- Input Section -->
                 <div class="panel-section">
                     <h2 class="section-title">予想データ入力</h2>
+
+                    <!-- URL Input Mode (NEW!) -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="color: white; font-weight: bold; margin-bottom: 10px; font-size: 16px;">
+                            🚀 最も簡単！URLを貼り付けるだけ
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input
+                                type="text"
+                                id="race-url"
+                                placeholder="例: https://www.nankankeiba.com/uma_shosai/2025102020110101.do"
+                                style="flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 14px;"
+                            />
+                            <button
+                                onclick="fetchFromURL()"
+                                style="padding: 12px 24px; background: white; color: #667eea; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap;"
+                            >
+                                🔄 自動取得
+                            </button>
+                        </div>
+                        <div id="url-status" style="margin-top: 10px; color: white; font-size: 13px;"></div>
+                    </div>
+
                     <textarea id="input-data" placeholder="💡 3つの入力モード対応！
 
 【🏇 南関出馬表モード】← NEW!
@@ -1093,6 +1116,57 @@
             const converted = smartConvert(sampleData);
             document.getElementById('input-data').value = converted;
             updatePreview();
+        }
+
+        // Fetch Race Card from URL using Netlify Function
+        async function fetchFromURL() {
+            const urlInput = document.getElementById('race-url');
+            const url = urlInput.value.trim();
+            const statusEl = document.getElementById('url-status');
+
+            if (!url) {
+                statusEl.textContent = '⚠️ URLを入力してください';
+                return;
+            }
+
+            if (!url.includes('nankankeiba.com')) {
+                statusEl.textContent = '⚠️ 南関競馬のURLを入力してください';
+                return;
+            }
+
+            try {
+                statusEl.textContent = '🔄 出馬表を取得中...';
+
+                // Call Netlify Function
+                const response = await fetch('/.netlify/functions/fetch-race-card', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to fetch race card');
+                }
+
+                statusEl.textContent = '✅ 取得成功！HTMLを解析中...';
+
+                // Put the HTML into the textarea
+                document.getElementById('input-data').value = data.html;
+
+                // Automatically parse it
+                setTimeout(() => {
+                    parseNankanData();
+                    statusEl.textContent = '✅ 完了！データを確認してください';
+                }, 500);
+
+            } catch (error) {
+                console.error('Error fetching race card:', error);
+                statusEl.textContent = '❌ エラー: ' + error.message;
+            }
         }
 
         // Parse Nankan Race Card and Auto-Generate Scores
