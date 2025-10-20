@@ -1209,6 +1209,12 @@
                     const processedHorseNumbers = new Set(); // 重複チェック用
 
                     for (let i = 0; i < rowsArray.length; i++) {
+                        // 十分な頭数を検出したら停止（最大18頭）
+                        if (detectedHorses.length >= 18) {
+                            console.log(`⏹️ 18頭検出完了 - パース終了`);
+                            break;
+                        }
+
                         const row = rowsArray[i];
                         const cells = row.querySelectorAll('td');
 
@@ -1432,10 +1438,8 @@
                 const raceName = "1R 大井 C3（南関出馬表から自動生成）";
                 const output = `${raceName}\n${results.join('\n')}\n${bettingRecommendations}`;
 
-                // 自動変換して表示
+                // 自動生成データはsmartConvertをスキップ（既に正しい形式）
                 document.getElementById('input-data').value = output;
-                const converted = smartConvert(output);
-                document.getElementById('input-data').value = converted;
                 updatePreview();
 
                 showStatus('input-status', `✅ ${horses.length}頭を分析完了！本命：${top3[0].num}番 ${top3[0].name}`, 'success');
