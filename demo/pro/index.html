@@ -1206,6 +1206,7 @@
                     // rowspan属性を持つ<td>で馬番を探す方法
                     const rowsArray = Array.from(rows);
                     const detectedHorses = [];
+                    const processedHorseNumbers = new Set(); // 重複チェック用
 
                     for (let i = 0; i < rowsArray.length; i++) {
                         const row = rowsArray[i];
@@ -1238,6 +1239,12 @@
                                     }
                                 }
                             }
+                        }
+
+                        // 既に処理済みの馬番はスキップ
+                        if (baban && processedHorseNumbers.has(baban)) {
+                            console.log(`  ⏩ 馬番${baban}は既に処理済み - スキップ`);
+                            continue;
                         }
 
                         // 馬名を検出: <a>タグ内の<span class="nk23_u-text16">またはカタカナ3文字以上
@@ -1338,6 +1345,9 @@
                                     recentRaces: []
                                 } : null
                             });
+
+                            // 処理済みとしてマーク（重複防止）
+                            processedHorseNumbers.add(baban);
 
                             if (statsData) {
                                 console.log(`✅ 馬${baban} ${horseName}: 勝率${statsData.winRate}%、連対率${statsData.placeRate}%`);
