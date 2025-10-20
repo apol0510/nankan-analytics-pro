@@ -1375,10 +1375,17 @@
                 }
 
                 // Auto-calculate scores
+                console.log('\n========== 📊 総合評価スコア ==========');
                 const results = horses.map(horse => {
                     const score = calculateAutoScore(horse.stats);
                     const prob = calculateProbability(score, horses.length);
-                    console.log(`${horse.num} ${horse.name}: score=${score}, prob=${prob}%`);
+                    const details = calculateDetailedScores(horse.stats);
+                    console.log(`\n🐴 ${horse.num}番 ${horse.name}`);
+                    console.log(`  📈 総合: ${score}点 (確率${prob}%)`);
+                    console.log(`  ├─ 基礎評価: ${details.basic}点 (勝率${details.winRate}% / 連対率${details.placeRate}%)`);
+                    console.log(`  ├─ 経験評価: ${details.experience}点 (${details.totalRaces}戦)`);
+                    console.log(`  ├─ 安定性: ${details.stability}点 (複勝率${details.completionRate}%)`);
+                    console.log(`  └─ 信頼度: ${details.confidence}%`);
                     return `${horse.num},${horse.name},${score},${prob}%`;
                 });
 
@@ -1399,59 +1406,144 @@
             }
         }
 
-        // Calculate Auto Score from stats
+        // Calculate Detailed Scores - 詳細評価スコア
+        function calculateDetailedScores(stats) {
+            // デフォルト値チェック
+            if (!stats || typeof stats !== 'object') {
+                return {
+                    basic: 5.0,
+                    experience: 5.0,
+                    stability: 5.0,
+                    confidence: 20,
+                    totalRaces: 0,
+                    winRate: 0,
+                    placeRate: 0,
+                    completionRate: 0
+                };
+            }
+
+            // 成績データ取得
+            const totalRaces = stats.totalRaces ? stats.totalRaces.total : 0;
+            const wins = stats.totalRaces ? stats.totalRaces.w : 0;
+            const places = stats.totalRaces ? stats.totalRaces.p : 0;
+            const shows = stats.totalRaces ? stats.totalRaces.s : 0;
+            const winRate = parseFloat(stats.winRate) || 0;
+            const placeRate = parseFloat(stats.placeRate) || 0;
+
+            // 1️⃣ 基礎評価（勝率・連対率ベース）
+            let basicScore = 5.0;
+            if (winRate >= 25) basicScore = 10.0;
+            else if (winRate >= 20) basicScore = 9.5;
+            else if (winRate >= 15) basicScore = 9.0;
+            else if (winRate >= 10) basicScore = 8.5;
+            else if (winRate >= 5) basicScore = 8.0;
+            else if (placeRate >= 40) basicScore = 7.5;
+            else if (placeRate >= 30) basicScore = 7.0;
+            else if (placeRate >= 20) basicScore = 6.5;
+            else if (placeRate >= 10) basicScore = 6.0;
+
+            // 2️⃣ 経験評価（出走回数ベース）
+            let experienceScore = 5.0;
+            if (totalRaces >= 30) experienceScore = 9.0;
+            else if (totalRaces >= 20) experienceScore = 8.5;
+            else if (totalRaces >= 15) experienceScore = 8.0;
+            else if (totalRaces >= 10) experienceScore = 7.5;
+            else if (totalRaces >= 5) experienceScore = 7.0;
+            else if (totalRaces >= 3) experienceScore = 6.5;
+            else if (totalRaces >= 1) experienceScore = 6.0;
+
+            // 3️⃣ 安定性評価（複勝率ベース）
+            const completionRate = totalRaces > 0 ? ((wins + places + shows) / totalRaces * 100).toFixed(1) : 0;
+            let stabilityScore = 5.0;
+            if (completionRate >= 60) stabilityScore = 9.0;
+            else if (completionRate >= 50) stabilityScore = 8.5;
+            else if (completionRate >= 40) stabilityScore = 8.0;
+            else if (completionRate >= 30) stabilityScore = 7.5;
+            else if (completionRate >= 20) stabilityScore = 7.0;
+            else if (completionRate >= 10) stabilityScore = 6.5;
+
+            // 4️⃣ 信頼度（データの充実度）
+            let confidence = 20;
+            if (totalRaces >= 10) confidence = 100;
+            else if (totalRaces >= 5) confidence = 80;
+            else if (totalRaces >= 3) confidence = 60;
+            else if (totalRaces >= 1) confidence = 40;
+
+            return {
+                basic: basicScore.toFixed(1),
+                experience: experienceScore.toFixed(1),
+                stability: stabilityScore.toFixed(1),
+                confidence: confidence,
+                totalRaces: totalRaces,
+                winRate: winRate.toFixed(1),
+                placeRate: placeRate.toFixed(1),
+                completionRate: completionRate
+            };
+        }
+
+        // Calculate Auto Score from stats - 複数評価指標
         function calculateAutoScore(stats) {
             // デフォルト値チェック
             if (!stats || typeof stats !== 'object') {
                 return 7.0;
             }
 
-            let score = 7.0; // Base score
+            // 成績データ取得
+            const totalRaces = stats.totalRaces ? stats.totalRaces.total : 0;
+            const wins = stats.totalRaces ? stats.totalRaces.w : 0;
+            const places = stats.totalRaces ? stats.totalRaces.p : 0;
+            const shows = stats.totalRaces ? stats.totalRaces.s : 0;
+            const winRate = parseFloat(stats.winRate) || 0;
+            const placeRate = parseFloat(stats.placeRate) || 0;
 
-            // Recent form (調子スコア)
-            if (stats.recentRaces && stats.recentRaces.length >= 3) {
-                const recent3 = stats.recentRaces.slice(0, 3);
-                const avgRank = recent3.reduce((a, b) => a + b, 0) / recent3.length;
+            // 1️⃣ 基礎評価（勝率・連対率ベース） 0-10点
+            let basicScore = 5.0;
+            if (winRate >= 25) basicScore = 10.0;
+            else if (winRate >= 20) basicScore = 9.5;
+            else if (winRate >= 15) basicScore = 9.0;
+            else if (winRate >= 10) basicScore = 8.5;
+            else if (winRate >= 5) basicScore = 8.0;
+            else if (placeRate >= 40) basicScore = 7.5;
+            else if (placeRate >= 30) basicScore = 7.0;
+            else if (placeRate >= 20) basicScore = 6.5;
+            else if (placeRate >= 10) basicScore = 6.0;
 
-                // 平均着順が良いほど高スコア
-                if (avgRank <= 3) score += 1.5;
-                else if (avgRank <= 5) score += 1.0;
-                else if (avgRank <= 7) score += 0.5;
-                else if (avgRank >= 10) score -= 1.0;
+            // 2️⃣ 経験評価（出走回数ベース） 0-10点
+            let experienceScore = 5.0;
+            if (totalRaces >= 30) experienceScore = 9.0;
+            else if (totalRaces >= 20) experienceScore = 8.5;
+            else if (totalRaces >= 15) experienceScore = 8.0;
+            else if (totalRaces >= 10) experienceScore = 7.5;
+            else if (totalRaces >= 5) experienceScore = 7.0;
+            else if (totalRaces >= 3) experienceScore = 6.5;
+            else if (totalRaces >= 1) experienceScore = 6.0;
 
-                // 上昇傾向チェック
-                if (recent3.length >= 3) {
-                    if (recent3[0] < recent3[1] && recent3[1] < recent3[2]) {
-                        score += 0.8; // 上昇傾向
-                    } else if (recent3[0] > recent3[1] && recent3[1] > recent3[2]) {
-                        score -= 0.5; // 下降傾向
-                    }
-                }
-            }
+            // 3️⃣ 安定性評価（複勝率・完走率ベース） 0-10点
+            const completionRate = totalRaces > 0 ? ((wins + places + shows) / totalRaces * 100) : 0;
+            let stabilityScore = 5.0;
+            if (completionRate >= 60) stabilityScore = 9.0;
+            else if (completionRate >= 50) stabilityScore = 8.5;
+            else if (completionRate >= 40) stabilityScore = 8.0;
+            else if (completionRate >= 30) stabilityScore = 7.5;
+            else if (completionRate >= 20) stabilityScore = 7.0;
+            else if (completionRate >= 10) stabilityScore = 6.5;
 
-            // Win rate bonus
-            if (stats.winRate) {
-                const wr = parseFloat(stats.winRate);
-                if (wr >= 20) score += 1.5;
-                else if (wr >= 10) score += 1.0;
-                else if (wr >= 5) score += 0.5;
-            }
+            // 4️⃣ 信頼度（データの充実度） 0-100%
+            let confidence = 50;
+            if (totalRaces >= 10) confidence = 100;
+            else if (totalRaces >= 5) confidence = 80;
+            else if (totalRaces >= 3) confidence = 60;
+            else if (totalRaces >= 1) confidence = 40;
 
-            // Place rate bonus
-            if (stats.placeRate) {
-                const pr = parseFloat(stats.placeRate);
-                if (pr >= 40) score += 1.0;
-                else if (pr >= 25) score += 0.5;
-            }
-
-            // 経験値ボーナス
-            if (stats.totalRaces && stats.totalRaces.total >= 20) {
-                score += 0.3; // ベテランボーナス
-            }
+            // 5️⃣ 総合評価（加重平均） 0-10点
+            // 基礎評価40% + 経験評価30% + 安定性評価30%
+            const overallScore = (basicScore * 0.4) + (experienceScore * 0.3) + (stabilityScore * 0.3);
 
             // スコアを0.1刻みに丸める
-            score = Math.max(5.0, Math.min(10.0, score)); // 5.0〜10.0の範囲
-            return score.toFixed(1);
+            const finalScore = Math.max(5.0, Math.min(10.0, overallScore));
+
+            // 総合スコアを返す（後方互換性のため）
+            return finalScore.toFixed(1);
         }
 
         // Calculate Probability
