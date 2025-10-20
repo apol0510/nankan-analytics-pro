@@ -1178,6 +1178,13 @@
                 return;
             }
 
+            // Check if data is already in generated format (avoid re-parsing)
+            if (rawData.includes('===') && rawData.includes('単勝:') && !rawData.includes('<td')) {
+                showStatus('input-status', '✅ データは既に生成済みです', 'success');
+                updatePreview(); // Just update preview
+                return;
+            }
+
             try {
                 const horses = [];
 
