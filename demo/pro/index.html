@@ -1374,24 +1374,63 @@
                     return;
                 }
 
-                // Auto-calculate scores
+                // Auto-calculate scores and sort by score (descending)
                 console.log('\n========== 📊 総合評価スコア ==========');
-                const results = horses.map(horse => {
-                    const score = calculateAutoScore(horse.stats);
-                    const prob = calculateProbability(score, horses.length);
+                const horsesWithScores = horses.map(horse => {
+                    const score = parseFloat(calculateAutoScore(horse.stats));
+                    const prob = calculateProbability(score.toFixed(1), horses.length);
                     const details = calculateDetailedScores(horse.stats);
-                    console.log(`\n🐴 ${horse.num}番 ${horse.name}`);
-                    console.log(`  📈 総合: ${score}点 (確率${prob}%)`);
-                    console.log(`  ├─ 基礎評価: ${details.basic}点 (勝率${details.winRate}% / 連対率${details.placeRate}%)`);
-                    console.log(`  ├─ 経験評価: ${details.experience}点 (${details.totalRaces}戦)`);
-                    console.log(`  ├─ 安定性: ${details.stability}点 (複勝率${details.completionRate}%)`);
-                    console.log(`  └─ 信頼度: ${details.confidence}%`);
-                    return `${horse.num},${horse.name},${score},${prob}%`;
+                    return {
+                        num: horse.num,
+                        name: horse.name,
+                        score: score,
+                        scoreStr: score.toFixed(1),
+                        prob: prob,
+                        details: details
+                    };
                 });
+
+                // スコア降順でソート（高い方が上位）
+                horsesWithScores.sort((a, b) => b.score - a.score);
+
+                // ソート後の順位付きログ出力
+                horsesWithScores.forEach((horse, index) => {
+                    const rank = index + 1;
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}位`;
+                    console.log(`\n${medal} ${horse.num}番 ${horse.name}`);
+                    console.log(`  📈 総合: ${horse.scoreStr}点 (確率${horse.prob}%)`);
+                    console.log(`  ├─ 基礎評価: ${horse.details.basic}点 (勝率${horse.details.winRate}% / 連対率${horse.details.placeRate}%)`);
+                    console.log(`  ├─ 経験評価: ${horse.details.experience}点 (${horse.details.totalRaces}戦)`);
+                    console.log(`  ├─ 安定性: ${horse.details.stability}点 (複勝率${horse.details.completionRate}%)`);
+                    console.log(`  └─ 信頼度: ${horse.details.confidence}%`);
+                });
+
+                // 予想データ生成（スコア順）
+                const results = horsesWithScores.map(horse => {
+                    return `${horse.num},${horse.name},${horse.scoreStr},${horse.prob}%`;
+                });
+
+                // 買い目自動生成（上位3頭）
+                const top3 = horsesWithScores.slice(0, 3);
+                const bettingRecommendations = `===
+単勝:${top3[0].num}
+馬単:${top3[0].num}-${top3[1].num}
+三連単:${top3[0].num}-${top3[1].num}-${top3[2].num}
+三連複:${top3[0].num}-${top3[1].num}-${top3[2].num}`;
+
+                console.log('\n========== 🎯 推奨買い目 ==========');
+                console.log(`🥇 本命: ${top3[0].num}番 ${top3[0].name} (${top3[0].scoreStr}点)`);
+                console.log(`🥈 対抗: ${top3[1].num}番 ${top3[1].name} (${top3[1].scoreStr}点)`);
+                console.log(`🥉 単穴: ${top3[2].num}番 ${top3[2].name} (${top3[2].scoreStr}点)`);
+                console.log('\n💰 買い目:');
+                console.log(`  単勝: ${top3[0].num}`);
+                console.log(`  馬単: ${top3[0].num}-${top3[1].num}`);
+                console.log(`  三連単: ${top3[0].num}-${top3[1].num}-${top3[2].num}`);
+                console.log(`  三連複: ${top3[0].num}-${top3[1].num}-${top3[2].num}`);
 
                 // レース名を推定（仮に「1R 大井 C3」とする）
                 const raceName = "1R 大井 C3（南関出馬表から自動生成）";
-                const output = `${raceName}\n${results.join('\n')}`;
+                const output = `${raceName}\n${results.join('\n')}\n${bettingRecommendations}`;
 
                 // 自動変換して表示
                 document.getElementById('input-data').value = output;
@@ -1399,7 +1438,7 @@
                 document.getElementById('input-data').value = converted;
                 updatePreview();
 
-                showStatus('input-status', `✅ ${horses.length}頭のデータを自動生成しました！`, 'success');
+                showStatus('input-status', `✅ ${horses.length}頭を分析完了！本命：${top3[0].num}番 ${top3[0].name}`, 'success');
             } catch (error) {
                 console.error('Parse error:', error);
                 showStatus('input-status', '⚠️ データ解析エラー: ' + error.message, 'error');
